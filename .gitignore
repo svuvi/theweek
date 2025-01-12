@@ -1,0 +1,6 @@
+.DS_Store
+*.db
+*.env
+*_templ.go
+bin/
+tmp/
