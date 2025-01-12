@@ -1,0 +1,8 @@
+CREATE TABLE
+    articles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        slug TEXT NOT NULL UNIQUE,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        title TEXT NOT NULL,
+        textMD TEXT NOT NULL
+    );
