@@ -1,17 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/svuvi/theweek/db"
+	"github.com/svuvi/theweek/routes"
 )
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "<h1>Hello</h1>")
-}
-
 func main() {
-	http.HandleFunc("/", hello)
-	log.Print("Serving localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	db := db.ConnectDB()
+	defer db.Close()
+
+	h := routes.NewBaseHandler(db)
+	router := h.NewRouter()
+
+	server := http.Server{
+		Addr:    ":8080",
+		Handler: router,
+	}
+
+	log.Printf("Запускаю сервер http://localhost%s", server.Addr)
+	server.ListenAndServe()
 }
