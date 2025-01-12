@@ -5,6 +5,7 @@ import (
 	"embed"
 	"net/http"
 
+	"github.com/svuvi/theweek/layouts"
 	"github.com/svuvi/theweek/models"
 	"github.com/svuvi/theweek/repositories"
 )
@@ -34,7 +35,13 @@ func (h *BaseHandler) NewRouter() http.Handler {
 }
 
 func (h *BaseHandler) indexHandler(w http.ResponseWriter, r *http.Request) {
+	articles, err := h.articleRepo.GetAll()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
+	layouts.Index(articles).Render(r.Context(), w)
 }
 
 func (h *BaseHandler) articleHandler(w http.ResponseWriter, r *http.Request) {

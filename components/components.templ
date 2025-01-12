@@ -1,0 +1,53 @@
+package components
+
+import (
+    "fmt"
+
+    "github.com/svuvi/theweek/models"
+)
+templ ArticlePreview(article *models.Article) {
+    <div class="article-preview">
+        <h1><a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>{ article.Title }</a></h1>
+        {{ text, trimmed := trimToRowsOrChars(article.TextMD, 15, 1000) }}
+		@MarkdownText(text)
+		if trimmed {
+			<a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>Читать полностью -></a>
+		}
+    </div>
+}
+
+templ MarkdownText(mdText string) {
+	@templ.Raw(mdStringToHTML(mdText))
+}
+
+templ Header() {
+    <header>
+        <div class="nav-top">
+            <svg alt="Поиск" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" style="transform: scale(1);"><path d="M16.32 14.9l5.39 5.4a1 1 0 0 1-1.42 1.4l-5.38-5.38a8 8 0 1 1 1.41-1.41zM10 16a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"></path></svg>
+            <ul class="nav-list inter-regular">
+                <li>ХРОТРАЙК</li>
+                <li>МИР</li>
+                <li>СКИТСОФРЕНЛЯНДИЯ</li>
+                <li>КАЛИБРИЯ</li>
+                <li>ЦУКУСИ</li>
+            </ul>
+        </div>
+        <div class="nav-mid">
+            <div class="logo chomsky"><h1>The Week</h1></div>
+        </div>
+        <div class="nav-bottom">
+            <ul class="nav-list inter-regular">
+                <li>Хротрайк</li>
+                <li>Мир</li>
+                <li>Бизнес</li>
+                <li>Искусство</li>
+                <li>Жизнь</li>
+                <li>Мнения</li>
+                <li>Музыка</li>
+                <li>Игры</li>
+                <li>Кулинария</li>
+                <li>Погода</li>
+            </ul>
+        </div>
+    </header>
+}

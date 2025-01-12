@@ -1,1 +1,87 @@
-/*  */
+/* Start fonts */
+@font-face {
+    font-family: Chomsky;
+    src: url(/static/fonts/chomsky.woff2);
+}
+
+.chomsky {
+    font-family: Chomsky;
+}
+
+.inter-bold {
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.inter-regular {
+    font-family: "Inter", serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Shobhika;
+    src: url(/static/fonts/shobhika-regular.otf) format("opentype");
+}
+
+@font-face {
+    font-family: Shobhika;
+    font-weight: bold;
+    src: url(/static/fonts/shobhika-bold.otf) format("opentype");
+}
+
+
+/* End fonts */
+
+body {
+    margin: 0 8%;
+    font-family: Shobhika;
+}
+
+a {
+    text-decoration: none;
+    color: #000;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    border-bottom: 4px double #000;
+}
+
+.nav-top, .nav-mid{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.nav-top svg {
+    float: left;
+}
+
+.nav-mid h1 {
+    margin: 0;
+    font-size: 6em;
+    font-weight: 100;
+}
+
+ul.nav-list {
+    display: flex;
+    justify-self: stretch;
+    justify-content: center;
+    li {
+        display: inline;
+        margin: 0 1.4em;
+    }
+}
+
+.nav-bottom .nav-list {
+    margin-bottom: 0.8em;
+}
+    
