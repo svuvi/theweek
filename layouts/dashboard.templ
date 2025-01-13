@@ -1,0 +1,47 @@
+package layouts
+
+
+import (
+  "github.com/svuvi/theweek/models"
+	"github.com/svuvi/theweek/components"
+)
+
+templ BaseDashboard(title string) {
+    <!DOCTYPE html>
+    <html lang="ru-RU">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{ title }</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <link rel="stylesheet" href="/static/dashboard.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+        <script src="/static/htmx.min.js"></script>
+        <meta name="htmx-config" content='{"responseHandling": [{"code":".*", "swap": true}]}'/>
+    </head>
+    <body class="dashboard inter-regular">
+        <div class="dashboard-left-menu">
+            <a href="/" class="chomsky"><h1>The Week</h1></a>
+            <a href="/dashboard/">Панель Управления</a>
+            <a href="/dashboard/users/">Пользователи</a>
+            <a href="/dashboard/invites/">Приглашения</a>
+        </div>
+        { children... }
+    </body>
+    </html>
+}
+
+templ DashboardHome() {
+    @BaseDashboard("Главная - Панель управления The Week") {
+        
+    }
+}
+
+templ DashboardInvites(invites []*models.Invite) {
+    @BaseDashboard("Приглашения - Панель управления The Week") {
+        <buttton class="button-1" hx-post="/dashboard/invites/create" hx-target="#invites">Создать 📝</buttton>
+        @components.InviteTable(invites)        
+    }
+}

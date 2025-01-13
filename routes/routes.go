@@ -16,6 +16,7 @@ type BaseHandler struct {
 	articleRepo models.ArticleRepository
 	userRepo    models.UserRepository
 	sessionRepo models.SessionRepository
+	inviteRepo models.InviteRepository
 }
 
 func NewBaseHandler(db *sql.DB) *BaseHandler {
@@ -23,6 +24,7 @@ func NewBaseHandler(db *sql.DB) *BaseHandler {
 		articleRepo: repositories.NewArticleRepo(db),
 		userRepo:    repositories.NewUserRepo(db),
 		sessionRepo: repositories.NewSessionRepo(db),
+		inviteRepo: repositories.NewInviteRepo(db),
 	}
 }
 
@@ -32,7 +34,7 @@ var static embed.FS
 func (h *BaseHandler) NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /", h.indexHandler)
+	mux.HandleFunc("GET /{$}", h.indexHandler)
 	mux.HandleFunc("GET /{slug}", h.articleHandler)
 
 	mux.HandleFunc("GET /login", h.loginPageHandler)
@@ -42,6 +44,12 @@ func (h *BaseHandler) NewRouter() http.Handler {
 
 	mux.HandleFunc("GET /register", h.registrationPageHandler)
 	mux.HandleFunc("POST /register", h.registrationFormHandler)
+
+	mux.HandleFunc("GET /dashboard/", h.DasboardPageHandler)
+	mux.HandleFunc("GET /dashboard/users/", h.DashboardUsersHandler)
+	mux.HandleFunc("GET /dashboard/invites/", h.DashboardInvitesHandler)
+	mux.HandleFunc("POST /dashboard/invites/create", h.CreateInvite)
+	mux.HandleFunc("DELETE /dashboard/invites/delete/{code}", h.DeleteInvite)
 
 	mux.HandleFunc("GET /write", h.writingPageHandler)
 	mux.HandleFunc("POST /write", h.writingFormHandler)

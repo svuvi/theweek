@@ -24,3 +24,13 @@ CREATE TABLE sessions (
     is_active INTEGER DEFAULT 1 NOT NULL, -- boolean 0/1
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE TABLE invites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL, -- UUID string
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        claimed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        is_active INTEGER DEFAULT 1 NOT NULL, -- boolean 0/1
+        claimed_by_user_id INTEGER DEFAULT 1 NOT NULL,
+        FOREIGN KEY (claimed_by_user_id) REFERENCES users (id)
+    );

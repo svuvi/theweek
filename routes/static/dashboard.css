@@ -1,0 +1,13 @@
+body.dashboard {
+    
+}
+
+.dashboard-left-menu {
+   display: flex;
+   flex-direction: column;
+}
+
+tr.htmx-swapping td {
+    opacity: 0;
+    transition: opacity 1s ease-out;
+}

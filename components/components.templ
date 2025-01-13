@@ -2,9 +2,12 @@ package components
 
 import (
     "fmt"
+    "strconv"
+    "slices"
 
     "github.com/svuvi/theweek/models"
 )
+
 templ ArticlePreview(article *models.Article) {
     <div class="article-preview">
         <h1><a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>{ article.Title }</a></h1>
@@ -146,4 +149,49 @@ templ WritingSuccessful(slug string) {
         <a href={ templ.URL(fmt.Sprint("/", slug)) }>Открыть статью</a>
         <a href="/">На главную</a>
     </div>
+}
+
+templ InviteTable(invites []*models.Invite) {
+    <table id="invites">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Активен</th>
+                    <th>Код</th>
+                    <th>Дата создания</th>
+                    <th>Дата использования</th>
+                    <th>Использовано ID</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody hx-target="closest tr" hx-swap="outerHTML swap:1s">
+                for _, invite := range slices.Backward(invites) {
+                    <tr>
+                        <td>{ strconv.Itoa(invite.ID) }</td>
+                        <td>
+                            if invite.IsActive {
+                                ✅
+                            } else {
+                                ❌
+                            }
+                        </td>
+                        <td>{ invite.Code }</td>
+                        <td>{ invite.CreatedAt.String() }</td>
+                        <td>   
+                            if invite.ClaimedAt == invite.CreatedAt {
+                                -
+                            } else {
+                                { invite.ClaimedAt.String() }
+                            }
+                        </td>
+                        <td>
+                            if invite.ClaimedByUserID != 1 {
+                                strconv.Itoa(invite.ClaimedByUserID)
+                            }
+                        </td>
+                        <td><button class="button-1" hx-delete={ fmt.Sprint("/dashboard/invites/delete/", invite.Code) }>🗑️</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 }
