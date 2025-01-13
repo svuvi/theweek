@@ -4,3 +4,4 @@
 *_templ.go
 bin/
 tmp/
+.VSCodeCounter/
