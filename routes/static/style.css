@@ -60,13 +60,18 @@ header {
     align-items: center;
 }
 
-.search{
+.icon{
     margin: 1em;
     display: flex;
     align-items: center;
 }
 
-/* CSS */
+.account, .user-corner {
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
+}
+
 .button-1 {
     vertical-align: middle;
     background-color: rgb(86, 123, 148);

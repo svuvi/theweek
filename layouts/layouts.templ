@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-templ Base(tabTitle string) {
+templ Base(tabTitle string, authorized bool, user *models.User) {
 	<!DOCTYPE html>
 	<html lang="ru-RU">
 		<head>
@@ -23,22 +23,22 @@ templ Base(tabTitle string) {
 			<meta name="htmx-config" content='{"responseHandling": [{"code":".*", "swap": true}]}'/>
 		</head>
 		<body>
-			@components.Header()
+			@components.Header(authorized, user)
 			{ children... }
 		</body>
 	</html>
 }
 
-templ Index(articles []*models.Article) {
-	@Base("The Week - Новости Урбанойда") {
+templ Index(articles []*models.Article, authorized bool, user *models.User) {
+	@Base("The Week - Новости Урбанойда", authorized, user) {
 		for _, art := range slices.Backward(articles) {
 			@components.ArticlePreview(art)
 		}
 	}
 }
 
-templ Article(article *models.Article) {
-	@Base(fmt.Sprint(article.Title, " - The Week")) {
+templ Article(article *models.Article, authorized bool, user *models.User) {
+	@Base(fmt.Sprint(article.Title, " - The Week"), authorized, user) {
 		<article>
 			<h1>{ article.Title }</h1>
 			<p>{ article.CreatedAt.String() }</p>
@@ -47,14 +47,14 @@ templ Article(article *models.Article) {
 	}
 }
 
-templ LoginPage() {
-	@Base("Вход в Аккаунт The Week") {
+templ LoginPage(authorized bool, user *models.User) {
+	@Base("Вход в Аккаунт The Week", authorized, user) {
 		@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
 	}
 }
 
-templ RegistrationPage() {
-	@Base("Регистрация Аккаунта в THe Week") {
+templ RegistrationPage(authorized bool, user *models.User) {
+	@Base("Регистрация Аккаунта в The Week", authorized, user) {
 		@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
 	}
 }

@@ -5,25 +5,33 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/svuvi/theweek/models"
 )
 
 // Также обновляет last_use
-func isAuthorised(r *http.Request, h *BaseHandler) bool {
+func isAuthorised(r *http.Request, h *BaseHandler) (bool, *models.User) {
+	user := new(models.User)
 	value, err := getSessionKey(r)
 	if err != nil {
-		return false
+		return false, user
 	}
 
 	session, err := h.sessionRepo.GetSessionByKey(value)
 	if err != nil || !session.IsActive {
-		return false
+		return false, user
+	}
+
+	user, err = h.userRepo.GetByID(session.UserID)
+	if err != nil {
+		// невозможный сценарий
+		return false, user
 	}
 
 	if err = h.sessionRepo.UpdateLastUsedByID(session.ID); err != nil {
 		log.Printf("Ошибка при попытке обновить поле last_use для сессии с ID=%d:\n%v", session.ID, err)
 	}
 
-	return true
+	return true, user
 }
 
 // getSessionKey читает и валидирует "session-key" куки из запроса.

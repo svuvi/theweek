@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/svuvi/theweek/components"
@@ -11,9 +12,10 @@ import (
 )
 
 func (h *BaseHandler) loginFormHandler(w http.ResponseWriter, r *http.Request) {
-	// Sanity check
-	if isAuthorised(r, h) {
+	authorized, _ := isAuthorised(r, h)
+	if authorized {
 		http.Error(w, "Уже зайден в аккаунт", http.StatusBadRequest)
+		return
 	}
 
 	r.ParseForm()
@@ -87,8 +89,10 @@ func (h *BaseHandler) loginFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BaseHandler) registrationFormHandler(w http.ResponseWriter, r *http.Request) {
-	if isAuthorised(r, h) {
-		http.Error(w, "Уже авторизован", http.StatusBadRequest)
+	authorized, _ := isAuthorised(r, h)
+	if authorized {
+		http.Error(w, "Уже зайден в аккаунт", http.StatusBadRequest)
+		return
 	}
 
 	r.ParseForm()
@@ -167,4 +171,31 @@ func (h *BaseHandler) registrationFormHandler(w http.ResponseWriter, r *http.Req
 	})
 
 	components.Registered().Render(r.Context(), w)
+}
+
+func (h *BaseHandler) logoutHandler(w http.ResponseWriter, r *http.Request) {
+	authorized, _ := isAuthorised(r, h)
+	if !authorized {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	sessionKey, _ := getSessionKey(r)
+	err := h.sessionRepo.SetInactive(sessionKey)
+	if err != nil {
+		log.Printf("Error when setting session \"%s\" inactive: %v", sessionKey, err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_key",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+	})
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }

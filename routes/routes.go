@@ -36,6 +36,8 @@ func (h *BaseHandler) NewRouter() http.Handler {
 	mux.HandleFunc("GET /login", h.loginPageHandler)
 	mux.HandleFunc("POST /login", h.loginFormHandler)
 
+	mux.HandleFunc("GET /logout", h.logoutHandler)
+
 	mux.HandleFunc("GET /register", h.registrationPageHandler)
 	mux.HandleFunc("POST /register", h.registrationFormHandler)
 
@@ -45,13 +47,15 @@ func (h *BaseHandler) NewRouter() http.Handler {
 }
 
 func (h *BaseHandler) indexHandler(w http.ResponseWriter, r *http.Request) {
+	authorized, user := isAuthorised(r, h)
+
 	articles, err := h.articleRepo.GetAll()
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	layouts.Index(articles).Render(r.Context(), w)
+	layouts.Index(articles, authorized, user).Render(r.Context(), w)
 }
 
 func (h *BaseHandler) articleHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,13 +67,16 @@ func (h *BaseHandler) articleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	layouts.Article(article).Render(r.Context(), w)
+	authorized, user := isAuthorised(r, h)
+	layouts.Article(article, authorized, user).Render(r.Context(), w)
 }
 
 func (h *BaseHandler) loginPageHandler(w http.ResponseWriter, r *http.Request) {
-	layouts.LoginPage().Render(r.Context(), w)
+	authorized, user := isAuthorised(r, h)
+	layouts.LoginPage(authorized, user).Render(r.Context(), w)
 }
 
 func (h *BaseHandler) registrationPageHandler(w http.ResponseWriter, r *http.Request) {
-	layouts.RegistrationPage().Render(r.Context(), w)
+	authorized, user := isAuthorised(r, h)
+	layouts.RegistrationPage(authorized, user).Render(r.Context(), w)
 }
