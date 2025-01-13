@@ -186,7 +186,7 @@ templ InviteTable(invites []*models.Invite) {
                         </td>
                         <td>
                             if invite.ClaimedByUserID != 1 {
-                                strconv.Itoa(invite.ClaimedByUserID)
+                                { strconv.Itoa(invite.ClaimedByUserID) }
                             }
                         </td>
                         <td><button class="button-1" hx-delete={ fmt.Sprint("/dashboard/invites/delete/", invite.Code) }>🗑️</button></td>

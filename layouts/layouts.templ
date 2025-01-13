@@ -61,18 +61,35 @@ templ LoginPage(authorized bool, user *models.User) {
 	}
 }
 
-templ RegistrationPage(authorized bool, user *models.User) {
-	@Base("Регистрация Аккаунта в The Week", authorized, user) {
-		if !authorized {
-			@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
-		} else {
-			<div class="inter-regular">
-				<p>Вы уже зарегестрированы.</p>
-				<a href="/logout" class="button-1">Выйти из аккаунта.</a>
-				<a href="/">На главную</a>
-			</div>
+templ RegistrationPage() {
+	@Base("Регистрация Аккаунта в The Week", false,&models.User{}) {
+		@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
+	}
+}
+
+templ AlreadyRegisteredPage(user *models.User) {
+	@Base("Вы уже зарегестрированы в The Week", true, user) {
+		<div class="inter-regular">
+			<p>Вы уже зарегестрированы.</p>
+			<a href="/logout" class="button-1">Выйти из аккаунта.</a>
+			<a href="/">На главную</a>
+		</div>
+	}
+}
+
+templ RegistrationNoInvite(expired bool) {
+	@Base("Как создать аккаунт в The Week", false, &models.User{}) {
+		<h1>Как создать аккаунт в The Week</h1>
+		if expired {
+			<p>Похоже, что ты воспользовался ссылкой приглашением. Но эта ссылка уже была использована</p>
 		}
-		
+		<ol>
+			<li>Напиши в чате урбанойдов, что хочешь аккаунт в The Week</li>
+			<li>Тебе пришлют ссылку с кодом-приглашением для регистрации</li>
+			<li>Регистрируйся через эту ссылку. </li>
+		</ol>
+		<p>Создание аккаунта позволяет оставлять комментарии. По дополнительному запросу, тебе может быть одобрено право публиковать свои заметки.</p>
+		<p>Система регистрации по приглашениям защищает The Week от непрошенных гостей, не имеющих отношение к нашему серверу.</p>
 	}
 }
 

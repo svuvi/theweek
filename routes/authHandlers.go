@@ -14,7 +14,7 @@ import (
 func (h *BaseHandler) loginFormHandler(w http.ResponseWriter, r *http.Request) {
 	authorized, _ := isAuthorised(r, h)
 	if authorized {
-		http.Error(w, "Уже зайден в аккаунт", http.StatusBadRequest)
+		http.Error(w, "Вы уже зашли в аккаунт", http.StatusBadRequest)
 		return
 	}
 
@@ -91,7 +91,19 @@ func (h *BaseHandler) loginFormHandler(w http.ResponseWriter, r *http.Request) {
 func (h *BaseHandler) registrationFormHandler(w http.ResponseWriter, r *http.Request) {
 	authorized, _ := isAuthorised(r, h)
 	if authorized {
-		http.Error(w, "Уже зайден в аккаунт", http.StatusBadRequest)
+		http.Error(w, "Вы уже зашли в аккаунт", http.StatusBadRequest)
+		return
+	}
+
+	code, err := getInviteCode(r)
+	if err != nil {
+		http.Error(w, "Невалидный код приглашения", http.StatusBadRequest)
+		return
+	}
+
+	invite, err := h.inviteRepo.GetByCode(code)
+	if err != nil || !invite.IsActive {
+		http.Error(w, "Невалидный код приглашения", http.StatusBadRequest)
 		return
 	}
 
@@ -171,6 +183,10 @@ func (h *BaseHandler) registrationFormHandler(w http.ResponseWriter, r *http.Req
 	})
 
 	components.Registered().Render(r.Context(), w)
+
+	if err = h.inviteRepo.Claim(code, user.ID); err != nil {
+		log.Printf("Ошибка при попытке отметить приглашение как использованное.\n Код: %s\nОшибка%v", code, err)
+	}
 }
 
 func (h *BaseHandler) logoutHandler(w http.ResponseWriter, r *http.Request) {

@@ -34,10 +34,24 @@ func isAuthorised(r *http.Request, h *BaseHandler) (bool, *models.User) {
 	return true, user
 }
 
-// getSessionKey читает и валидирует "session-key" куки из запроса.
+// getSessionKey читает и валидирует "session_key" куки из запроса.
 // Возвращает куки если это валидная uuid-строка и nil. Иначе, возвращает пустую строку и ошибку.
 func getSessionKey(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("session_key")
+	if err == http.ErrNoCookie {
+		return "", err
+	}
+	if err = uuid.Validate(cookie.Value); err != nil {
+		return "", err
+	}
+
+	return cookie.Value, nil
+}
+
+// getInviteCode читает и валидирует "registration_invite" куки из запроса.
+// Возвращает куки если это валидная uuid-строка и nil. Иначе, возвращает пустую строку и ошибку.
+func getInviteCode(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("registration_invite")
 	if err == http.ErrNoCookie {
 		return "", err
 	}
