@@ -30,6 +30,27 @@ func (r *UserRepo) Create(username, hashedPassowrd string) (*models.User, error)
 	return r.GetByID(int(id))
 }
 
+func (r *UserRepo) GetAll() ([]*models.User, error) {
+	rows, err := r.db.Query("SELECT * FROM users")
+	if err != nil {
+		return []*models.User{}, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		u := new(models.User)
+		if err := rows.Scan(&u.ID, &u.Username, &u.HashedPassowrd, &u.RegisteredAt, &u.IsAdmin); err != nil {
+			return users, err
+		}
+		users = append(users, u)
+	}
+	if err = rows.Err(); err != nil {
+		return users, err
+	}
+	return users, nil
+}
+
 func (r *UserRepo) GetByID(id int) (*models.User, error) {
 	var user models.User
 

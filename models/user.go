@@ -12,6 +12,7 @@ type User struct {
 
 type UserRepository interface {
 	Create(username, hashedPassowrd string) (*User, error)
+	GetAll() ([]*User, error)
 	GetByID(id int) (*User, error)
 	GetByUsername(username string) (*User, error)
 	ChangeUsername(id int, newUsername string) error

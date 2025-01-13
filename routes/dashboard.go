@@ -24,6 +24,14 @@ func (h *BaseHandler) DashboardUsersHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Отказано в доступе", http.StatusUnauthorized)
 		return
 	}
+
+	users, err := h.userRepo.GetAll()
+	if err != nil {
+		http.Error(w, "Ошибка при попытке загрузить пользователей", http.StatusInternalServerError)
+		return
+	}
+
+	layouts.DashboardUsers(users).Render(r.Context(), w)
 }
 
 func (h *BaseHandler) DashboardInvitesHandler(w http.ResponseWriter, r *http.Request) {

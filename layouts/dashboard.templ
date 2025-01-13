@@ -45,3 +45,9 @@ templ DashboardInvites(invites []*models.Invite) {
         @components.InviteTable(invites)        
     }
 }
+
+templ DashboardUsers(users []*models.User) {
+    @BaseDashboard("Пользователи - Панель управления The Week") {
+        @components.UserTable(users)
+    }
+}

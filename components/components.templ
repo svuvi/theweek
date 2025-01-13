@@ -195,3 +195,40 @@ templ InviteTable(invites []*models.Invite) {
             </tbody>
         </table>
 }
+
+templ UserTable(users []*models.User) {
+    <table id="users">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Логин</th>
+                <th>Время регистрации</th>
+                <th>Администратор</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            for _, user := range users {
+                <tr>
+                    <td>{ strconv.Itoa(user.ID) }</td>
+                    <td>{ user.Username }</td>
+                    <td>{ user.RegisteredAt.String() }</td>
+                    <td>
+                        if user.IsAdmin {
+                            👤
+                        }
+                    </td>
+                    <td>
+                        if user.ID == 1 {
+
+                        } else if user.IsAdmin {
+                            <button class="button-1">Убрать администратора</button>
+                        } else {
+                            <button class="button-1">Сделать администратором</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
