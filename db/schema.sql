@@ -12,6 +12,7 @@ CREATE TABLE users (
     username TEXT NOT NULL UNIQUE,
     hashed_password TEXT NOT NULL UNIQUE,
     registered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_admin INTEGER DEFAULT 0 NOT NULL, -- boolean 0/1
 );
 
 CREATE TABLE sessions (

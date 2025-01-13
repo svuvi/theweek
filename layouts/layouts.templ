@@ -49,12 +49,42 @@ templ Article(article *models.Article, authorized bool, user *models.User) {
 
 templ LoginPage(authorized bool, user *models.User) {
 	@Base("Вход в Аккаунт The Week", authorized, user) {
-		@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
+		if !authorized {
+			@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
+		} else {
+			<div class="inter-regular">
+				<p>Вы уже зашли в свой аккаунт.</p>
+				<a href="/logout" class="button-1">Выйти из аккаунта.</a>
+				<a href="/">На главную</a>
+			</div>
+		}
 	}
 }
 
 templ RegistrationPage(authorized bool, user *models.User) {
 	@Base("Регистрация Аккаунта в The Week", authorized, user) {
-		@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
+		if !authorized {
+			@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
+		} else {
+			<div class="inter-regular">
+				<p>Вы уже зарегестрированы.</p>
+				<a href="/logout" class="button-1">Выйти из аккаунта.</a>
+				<a href="/">На главную</a>
+			</div>
+		}
+		
+	}
+}
+
+templ WritingPage(authorized bool, user *models.User) {
+	@Base("Публикация статьи в The Week", authorized, user) {
+		if authorized && user.IsAdmin {
+			@components.WritingForm(templ.NopComponent, "", "", "")
+		} else {
+			<div class="inter-regular">
+				<p>Вы не авторизованы делать публикации</p>
+				<a href="/">На главную</a>
+			</div>
+		}
 	}
 }

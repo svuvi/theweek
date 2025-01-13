@@ -11,6 +11,7 @@ type Article struct {
 }
 
 type ArticleRepository interface {
+	Create(slug, title, textMD string) error
 	GetByID(id int) (*Article, error)
 	GetBySlug(slug string) (*Article, error)
 	GetAll() ([]*Article, error)

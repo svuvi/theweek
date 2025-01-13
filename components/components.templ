@@ -55,7 +55,7 @@ templ Header(authorized bool, user *models.User) {
             </div>
         </div>
         <div class="nav-mid">
-            <div class="logo chomsky"><h1>The Week</h1></div>
+            <div class="logo chomsky"><h1><a href="/">The Week</a></h1></div>
         </div>
         <div class="nav-bottom">
             <ul class="nav-list inter-regular">
@@ -121,6 +121,29 @@ templ RegistrationForm(usernameValue, passwordValue, passwordRepeat string, user
 templ Registered() {
     <div id="registered">
         <p>Вы успешно создали аккаунт!</p>
+        <a href="/">На главную</a>
+    </div>
+}
+
+templ WritingForm(slugResult templ.Component, slug, title, textMD string) {
+    <div id="writing-form" class="inter-regular">
+        <form hx-post="/write" hx-target="#writing-form" hx-swap="outerHTML">
+            <label>Ссылка</label>
+            <input type="text" name="slug" pattern="^[a-z0-9-]+$" value={ slug } required/>
+            @slugResult
+            <label>Заголовок</label>
+            <input type="text" name="title" value={ title } required/>
+            <label>Текст статьи в формате Markdown разметки</label>
+            <textarea name="textMD" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{ textMD }</textarea>
+            <button>Отправить</button>
+        </form>
+    </div>
+}
+
+templ WritingSuccessful(slug string) {
+    <div id="writing-form" class="inter-regular">
+        <p>Статья опубликована.</p>
+        <a href={ templ.URL(fmt.Sprint("/", slug)) }>Открыть статью</a>
         <a href="/">На главную</a>
     </div>
 }

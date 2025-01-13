@@ -7,6 +7,7 @@ type User struct {
 	Username       string
 	HashedPassowrd string
 	RegisteredAt   time.Time
+	IsAdmin        bool
 }
 
 type UserRepository interface {
@@ -15,5 +16,6 @@ type UserRepository interface {
 	GetByUsername(username string) (*User, error)
 	ChangeUsername(id int, newUsername string) error
 	ChangePassword(id int, newHashedPassword string) error
+	SetAdmin(id int, isAdmin bool) error
 	Delete(id int) error
 }

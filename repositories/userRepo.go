@@ -34,7 +34,7 @@ func (r *UserRepo) GetByID(id int) (*models.User, error) {
 	var user models.User
 
 	row := r.db.QueryRow("SELECT * FROM users WHERE id=?", id)
-	err := row.Scan(&user.ID, &user.Username, &user.HashedPassowrd, &user.RegisteredAt)
+	err := row.Scan(&user.ID, &user.Username, &user.HashedPassowrd, &user.RegisteredAt, &user.IsAdmin)
 	if err != nil {
 		return &models.User{}, err
 	}
@@ -46,7 +46,7 @@ func (r *UserRepo) GetByUsername(username string) (*models.User, error) {
 	var user models.User
 
 	row := r.db.QueryRow("SELECT * FROM users WHERE username=?", username)
-	err := row.Scan(&user.ID, &user.Username, &user.HashedPassowrd, &user.RegisteredAt)
+	err := row.Scan(&user.ID, &user.Username, &user.HashedPassowrd, &user.RegisteredAt, &user.IsAdmin)
 	if err != nil {
 		return &models.User{}, err
 	}
@@ -68,6 +68,18 @@ func (r *UserRepo) ChangeUsername(id int, newUsername string) error {
 
 func (r *UserRepo) ChangePassword(id int, newHashedPassword string) error {
 	res, err := r.db.Exec("UPDATE users SET hashed_password=$1 WHERE id=$2", newHashedPassword, id)
+
+	if err != nil {
+		return err
+	}
+	if affected, err := res.RowsAffected(); affected != 1 && err == nil {
+		return fmt.Errorf("изменено непредвиденное количество строк: %d", affected)
+	}
+	return nil
+}
+
+func (r *UserRepo) SetAdmin(id int, isAdmin bool) error {
+	res, err := r.db.Exec("UPDATE users SET is_admin=$1 WHERE id=$2", isAdmin, id)
 
 	if err != nil {
 		return err

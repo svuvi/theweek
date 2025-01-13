@@ -16,6 +16,11 @@ func NewArticleRepo(db *sql.DB) *ArticleRepo {
 	}
 }
 
+func (r *ArticleRepo) Create(slug, title, textMD string) error {
+	_, err := r.db.Exec("INSERT INTO articles(slug, title, textMD) VALUES (?, ?, ?)", slug, title, textMD)
+	return err
+}
+
 func (r *ArticleRepo) GetByID(id int) (*models.Article, error) {
 	var a models.Article
 
