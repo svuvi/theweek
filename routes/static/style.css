@@ -135,12 +135,12 @@ ul.nav-list {
 
 /* Страница входа */
 
-.login-form {
+.login-form, .registration-form {
     max-width: fit-content;
     margin: 5rem auto;
 }
 
-.login-form form {
+.login-form form, .registration-form form {
     display: flex;
     flex-direction: column;
 }

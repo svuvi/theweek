@@ -16,6 +16,9 @@ templ ArticlePreview(article *models.Article) {
     </div>
 }
 
+templ Empty() {
+}
+
 templ MarkdownText(mdText string) {
 	@templ.Raw(mdStringToHTML(mdText))
 }
@@ -59,7 +62,7 @@ templ Header() {
 }
 
 templ LoginForm(usernameValue, passwordValue string, usernameResult, passwordResult templ.Component) {
-    <div class="login-form inter-regular">
+    <div id="login-form" class="login-form inter-regular">
         <form hx-post="/login" hx-target="#login-form" hx-swap="outerHTML">
             <label>Логин</label>
             <input type="username" name="username" value={ usernameValue } required/>
@@ -71,5 +74,40 @@ templ LoginForm(usernameValue, passwordValue string, usernameResult, passwordRes
         </form>
         <p>Нет аккаунта?</p>
         <a href="/register">Как получить аккаунт</a>
+    </div>
+}
+
+templ FormWarning(text string) {
+    <div class="form-result warning">{ text }</div>
+}
+
+templ LoggedIn() {
+    <div id="logged-in">
+        <p>Вы зашли в аккаунт!</p>
+        <a href="/">На главную</a>
+    </div>
+}
+
+templ RegistrationForm(usernameValue, passwordValue, passwordRepeat string, usernameResult, passwordResult, passwordRepeatResult templ.Component) {
+	<div id="registration-form" class="registration-form inter-regular">
+		<form hx-post="/register" hx-target="#registration-form" hx-swap="outerHTML">
+			<label>Логин</label>
+			<input type="username" name="username" value={ usernameValue } required/>
+			@usernameResult
+			<label>Пароль</label>
+			<input type="password" name="password" value={ passwordValue } required/>
+			@passwordResult
+			<label>Повтор пароля</label>
+			<input type="password" name="passwordRepeat" value={ passwordRepeat } required/>
+            @passwordRepeatResult
+			<button>Зарегестрироваться</button>
+		</form>
+	</div>
+}
+
+templ Registered() {
+    <div id="registered">
+        <p>Вы успешно создали аккаунт!</p>
+        <a href="/">На главную</a>
     </div>
 }

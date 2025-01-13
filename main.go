@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/svuvi/theweek/db"
+	"github.com/svuvi/theweek/middleware"
 	"github.com/svuvi/theweek/routes"
 )
 
@@ -13,7 +14,7 @@ func main() {
 	defer db.Close()
 
 	h := routes.NewBaseHandler(db)
-	router := h.NewRouter()
+	router := middleware.NewLogger(h.NewRouter())
 
 	server := http.Server{
 		Addr:    ":8080",

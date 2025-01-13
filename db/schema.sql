@@ -6,3 +6,20 @@ CREATE TABLE
         title TEXT NOT NULL,
         textMD TEXT NOT NULL
     );
+
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    hashed_password TEXT NOT NULL UNIQUE,
+    registered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+);
+
+CREATE TABLE sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    session_key_hash BLOB NOT NULL UNIQUE, -- hashed UUID
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_use DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_active INTEGER DEFAULT 1 NOT NULL, -- boolean 0/1
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);

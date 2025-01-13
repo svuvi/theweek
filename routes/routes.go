@@ -12,11 +12,15 @@ import (
 
 type BaseHandler struct {
 	articleRepo models.ArticleRepository
+	userRepo    models.UserRepository
+	sessionRepo models.SessionRepository
 }
 
 func NewBaseHandler(db *sql.DB) *BaseHandler {
 	return &BaseHandler{
 		articleRepo: repositories.NewArticleRepo(db),
+		userRepo:    repositories.NewUserRepo(db),
+		sessionRepo: repositories.NewSessionRepo(db),
 	}
 }
 
@@ -28,6 +32,12 @@ func (h *BaseHandler) NewRouter() http.Handler {
 
 	mux.HandleFunc("GET /", h.indexHandler)
 	mux.HandleFunc("GET /{slug}", h.articleHandler)
+
+	mux.HandleFunc("GET /login", h.loginPageHandler)
+	mux.HandleFunc("POST /login", h.loginFormHandler)
+
+	mux.HandleFunc("GET /register", h.registrationPageHandler)
+	mux.HandleFunc("POST /register", h.registrationFormHandler)
 
 	mux.Handle("GET /static/", http.FileServerFS(static))
 
@@ -45,5 +55,21 @@ func (h *BaseHandler) indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BaseHandler) articleHandler(w http.ResponseWriter, r *http.Request) {
+	slug := r.PathValue("slug")
 
+	article, err := h.articleRepo.GetBySlug(slug)
+	if err != nil {
+		http.Error(w, "404 Страница не найдена", http.StatusNotFound)
+		return
+	}
+
+	layouts.Article(article).Render(r.Context(), w)
+}
+
+func (h *BaseHandler) loginPageHandler(w http.ResponseWriter, r *http.Request) {
+	layouts.LoginPage().Render(r.Context(), w)
+}
+
+func (h *BaseHandler) registrationPageHandler(w http.ResponseWriter, r *http.Request) {
+	layouts.RegistrationPage().Render(r.Context(), w)
 }
