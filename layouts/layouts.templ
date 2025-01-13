@@ -5,6 +5,7 @@ import (
 
 	"github.com/svuvi/theweek/models"
 	"github.com/svuvi/theweek/components"
+	"fmt"
 )
 
 templ Base(tabTitle string) {
@@ -31,5 +32,21 @@ templ Index(articles []*models.Article) {
 		for _, art := range slices.Backward(articles) {
 			@components.ArticlePreview(art)
 		}
+	}
+}
+
+templ Article(article *models.Article) {
+	@Base(fmt.Sprint(article.Title, " - The Week")) {
+		<article>
+			<h1>{ article.Title }</h1>
+			<p>{ article.CreatedAt.String() }</p>
+			@components.MarkdownText(article.TextMD)
+		</article>
+	}
+}
+
+templ LoginPage() {
+	@Base("Вход в Аккаунт The Week") {
+		@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
 	}
 }

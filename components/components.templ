@@ -57,3 +57,19 @@ templ Header() {
         </div>
     </header>
 }
+
+templ LoginForm(usernameValue, passwordValue string, usernameResult, passwordResult templ.Component) {
+    <div class="login-form inter-regular">
+        <form hx-post="/login" hx-target="#login-form" hx-swap="outerHTML">
+            <label>Логин</label>
+            <input type="username" name="username" value={ usernameValue } required/>
+            @usernameResult
+            <label>Пароль</label>
+			<input type="password" name="password" value={ passwordValue } required/>
+            @passwordResult
+            <button>Войти</button>
+        </form>
+        <p>Нет аккаунта?</p>
+        <a href="/register">Как получить аккаунт</a>
+    </div>
+}

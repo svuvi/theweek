@@ -132,4 +132,15 @@ ul.nav-list {
 .nav-bottom .nav-list {
     margin-bottom: 0.8em;
 }
-    
+
+/* Страница входа */
+
+.login-form {
+    max-width: fit-content;
+    margin: 5rem auto;
+}
+
+.login-form form {
+    display: flex;
+    flex-direction: column;
+}
