@@ -54,15 +54,59 @@ header {
     border-bottom: 4px double #000;
 }
 
-.nav-top, .nav-mid{
+.nav-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search{
+    margin: 1em;
+    display: flex;
+    align-items: center;
+}
+
+/* CSS */
+.button-1 {
+    vertical-align: middle;
+    background-color: rgb(86, 123, 148);
+    border-radius: 8px;
+    border-style: none;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    height: 40px;
+    line-height: 20px;
+    list-style: none;
+    margin: 0;
+    outline: none;
+    padding: 10px 16px;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    transition: color 100ms;
+    vertical-align: baseline;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  a {
+    color: white;
+  }
+}
+
+.button-1:hover,
+.button-1:focus {
+  background-color: rgb(152, 184, 206);
+}
+
+.nav-mid{
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
-}
-
-.nav-top svg {
-    float: left;
 }
 
 .nav-mid h1 {
@@ -73,11 +117,15 @@ header {
 
 ul.nav-list {
     display: flex;
+    flex-direction: row;
     justify-self: stretch;
+    align-items: center;
     justify-content: center;
     li {
         display: inline;
         margin: 0 1.4em;
+        height: 1em;
+        line-height: 1em;
     }
 }
 
