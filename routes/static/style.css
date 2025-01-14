@@ -140,7 +140,7 @@ ul.nav-list {
 
 /* Страница входа */
 
-#login-form, #registration-form, #writing-form {
+#login-form, #registration-form, #publishing-form {
     max-width: fit-content;
     margin: 5rem auto;
 }

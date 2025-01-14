@@ -2,13 +2,14 @@ package routes
 
 import (
 	"net/http"
+	"regexp"
 
 	"github.com/google/uuid"
 	"github.com/svuvi/theweek/components"
 	"github.com/svuvi/theweek/layouts"
 )
 
-func (h *BaseHandler) DasboardPageHandler(w http.ResponseWriter, r *http.Request) {
+func (h *BaseHandler) dasboardPageHandler(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
 	if !authorized || !user.IsAdmin {
 		http.Error(w, "Отказано в доступе", http.StatusUnauthorized)
@@ -18,7 +19,7 @@ func (h *BaseHandler) DasboardPageHandler(w http.ResponseWriter, r *http.Request
 	layouts.DashboardHome().Render(r.Context(), w)
 }
 
-func (h *BaseHandler) DashboardUsersHandler(w http.ResponseWriter, r *http.Request) {
+func (h *BaseHandler) dashboardUsersHandler(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
 	if !authorized || !user.IsAdmin {
 		http.Error(w, "Отказано в доступе", http.StatusUnauthorized)
@@ -34,7 +35,7 @@ func (h *BaseHandler) DashboardUsersHandler(w http.ResponseWriter, r *http.Reque
 	layouts.DashboardUsers(users).Render(r.Context(), w)
 }
 
-func (h *BaseHandler) DashboardInvitesHandler(w http.ResponseWriter, r *http.Request) {
+func (h *BaseHandler) dashboardInvitesHandler(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
 	if !authorized || !user.IsAdmin {
 		http.Error(w, "Отказано в доступе", http.StatusUnauthorized)
@@ -49,7 +50,7 @@ func (h *BaseHandler) DashboardInvitesHandler(w http.ResponseWriter, r *http.Req
 	layouts.DashboardInvites(invites).Render(r.Context(), w)
 }
 
-func (h *BaseHandler) CreateInvite(w http.ResponseWriter, r *http.Request) {
+func (h *BaseHandler) createInvite(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
 	if !authorized || !user.IsAdmin {
 		http.Error(w, "Отказано в доступе", http.StatusUnauthorized)
@@ -71,7 +72,7 @@ func (h *BaseHandler) CreateInvite(w http.ResponseWriter, r *http.Request) {
 	components.InviteTable(invites).Render(r.Context(), w)
 }
 
-func (h *BaseHandler) DeleteInvite(w http.ResponseWriter, r *http.Request) {
+func (h *BaseHandler) deleteInvite(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
 	if !authorized || !user.IsAdmin {
 		http.Error(w, "Отказано в доступе", http.StatusUnauthorized)
@@ -89,4 +90,48 @@ func (h *BaseHandler) DeleteInvite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *BaseHandler) dashboardPublishing(w http.ResponseWriter, r *http.Request) {
+	authorized, user := isAuthorised(r, h)
+	layouts.WritingPage(authorized, user).Render(r.Context(), w)
+}
+
+func (h *BaseHandler) publishingFormHandler(w http.ResponseWriter, r *http.Request) {
+	authorized, user := isAuthorised(r, h)
+	if !authorized || !user.IsAdmin {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	r.ParseForm()
+
+	slug := r.PostFormValue("slug")
+	title := r.PostFormValue("title")
+	description := r.PostFormValue("description")
+	textMD := r.PostFormValue("textMD")
+
+	re := regexp.MustCompile(`^[a-z0-9-]+$`)
+	match := re.MatchString(slug)
+	if !match {
+		slugResult := components.FormWarning("Ссылка может содержать только маленькие латинские буквы, цифры и знак \"-\"")
+		components.PublishingForm(slugResult, slug, title, textMD, description).Render(r.Context(), w)
+		return
+	}
+
+	_, err := h.articleRepo.GetBySlug(slug)
+	if err == nil {
+		slugResult := components.FormWarning("Эта ссылка уже занята")
+		components.PublishingForm(slugResult, slug, title, textMD, description).Render(r.Context(), w)
+		return
+	}
+
+	err = h.articleRepo.Create(slug, title, textMD, description)
+	if err != nil {
+		slugResult := components.FormWarning("Внутренняя ошибка сервера")
+		components.PublishingForm(slugResult, slug, title, textMD, description).Render(r.Context(), w)
+		return
+	}
+
+	components.PublishingSuccessful(slug).Render(r.Context(), w)
 }

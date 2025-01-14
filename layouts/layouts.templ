@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-templ Base(tabTitle string, authorized bool, user *models.User) {
+templ Base(tabTitle string, authorized bool, user *models.User, metaTags templ.Component) {
 	<!DOCTYPE html>
 	<html lang="ru-RU">
 		<head>
@@ -21,6 +21,7 @@ templ Base(tabTitle string, authorized bool, user *models.User) {
 			<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 			<script src="/static/htmx.min.js"></script>
 			<meta name="htmx-config" content='{"responseHandling": [{"code":".*", "swap": true}]}'/>
+			@metaTags
 		</head>
 		<body>
 			@components.Header(authorized, user)
@@ -30,7 +31,7 @@ templ Base(tabTitle string, authorized bool, user *models.User) {
 }
 
 templ Index(articles []*models.Article, authorized bool, user *models.User) {
-	@Base("The Week - Новости Урбанойда", authorized, user) {
+	@Base("The Week - Новости Урбанойда", authorized, user, components.MetaTagsSite()) {
 		for _, art := range slices.Backward(articles) {
 			@components.ArticlePreview(art)
 		}
@@ -38,7 +39,7 @@ templ Index(articles []*models.Article, authorized bool, user *models.User) {
 }
 
 templ Article(article *models.Article, authorized bool, user *models.User) {
-	@Base(fmt.Sprint(article.Title, " - The Week"), authorized, user) {
+	@Base(fmt.Sprint(article.Title, " - The Week"), authorized, user, components.MetaTagsArticle(article)) {
 		<article>
 			<h1>{ article.Title }</h1>
 			<p>{ article.CreatedAt.String() }</p>
@@ -48,7 +49,7 @@ templ Article(article *models.Article, authorized bool, user *models.User) {
 }
 
 templ LoginPage(authorized bool, user *models.User) {
-	@Base("Вход в Аккаунт The Week", authorized, user) {
+	@Base("Вход в Аккаунт The Week", authorized, user, templ.NopComponent) {
 		if !authorized {
 			@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
 		} else {
@@ -62,13 +63,13 @@ templ LoginPage(authorized bool, user *models.User) {
 }
 
 templ RegistrationPage() {
-	@Base("Регистрация Аккаунта в The Week", false,&models.User{}) {
+	@Base("Регистрация Аккаунта в The Week", false,&models.User{}, templ.NopComponent) {
 		@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
 	}
 }
 
 templ AlreadyRegisteredPage(user *models.User) {
-	@Base("Вы уже зарегестрированы в The Week", true, user) {
+	@Base("Вы уже зарегестрированы в The Week", true, user, templ.NopComponent) {
 		<div class="inter-regular">
 			<p>Вы уже зарегестрированы.</p>
 			<a href="/logout" class="button-1">Выйти из аккаунта.</a>
@@ -78,7 +79,7 @@ templ AlreadyRegisteredPage(user *models.User) {
 }
 
 templ RegistrationNoInvite(expired bool) {
-	@Base("Как создать аккаунт в The Week", false, &models.User{}) {
+	@Base("Как создать аккаунт в The Week", false, &models.User{}, templ.NopComponent) {
 		<h1>Как создать аккаунт в The Week</h1>
 		if expired {
 			<p>Похоже, что ты воспользовался ссылкой приглашением. Но эта ссылка уже была использована</p>
@@ -94,9 +95,9 @@ templ RegistrationNoInvite(expired bool) {
 }
 
 templ WritingPage(authorized bool, user *models.User) {
-	@Base("Публикация статьи в The Week", authorized, user) {
+	@BaseDashboard("Публикация статьи в The Week") {
 		if authorized && user.IsAdmin {
-			@components.WritingForm(templ.NopComponent, "", "", "")
+			@components.PublishingForm(templ.NopComponent, "", "", "", "")
 		} else {
 			<div class="inter-regular">
 				<p>Вы не авторизованы делать публикации</p>

@@ -5,10 +5,8 @@ import (
 	"embed"
 	"log"
 	"net/http"
-	"regexp"
 
 	"github.com/google/uuid"
-	"github.com/svuvi/theweek/components"
 	"github.com/svuvi/theweek/layouts"
 	"github.com/svuvi/theweek/models"
 	"github.com/svuvi/theweek/repositories"
@@ -49,14 +47,13 @@ func (h *BaseHandler) NewRouter() http.Handler {
 	mux.HandleFunc("GET /register", h.registrationPageHandler)
 	mux.HandleFunc("POST /register", h.registrationFormHandler)
 
-	mux.HandleFunc("GET /dashboard/", h.DasboardPageHandler)
-	mux.HandleFunc("GET /dashboard/users/", h.DashboardUsersHandler)
-	mux.HandleFunc("GET /dashboard/invites/", h.DashboardInvitesHandler)
-	mux.HandleFunc("POST /dashboard/invites/create", h.CreateInvite)
-	mux.HandleFunc("DELETE /dashboard/invites/delete/{code}", h.DeleteInvite)
-
-	mux.HandleFunc("GET /write", h.writingPageHandler)
-	mux.HandleFunc("POST /write", h.writingFormHandler)
+	mux.HandleFunc("GET /dashboard/", h.dasboardPageHandler)
+	mux.HandleFunc("GET /dashboard/users/", h.dashboardUsersHandler)
+	mux.HandleFunc("GET /dashboard/invites/", h.dashboardInvitesHandler)
+	mux.HandleFunc("POST /dashboard/invites/create", h.createInvite)
+	mux.HandleFunc("DELETE /dashboard/invites/delete/{code}", h.deleteInvite)
+	mux.HandleFunc("GET /dashboard/publishing/", h.dashboardPublishing)
+	mux.HandleFunc("POST /dashboard/publishing/", h.publishingFormHandler)
 
 	mux.Handle("GET /static/", http.FileServerFS(static))
 
@@ -151,47 +148,4 @@ func (h *BaseHandler) registrationPageHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	layouts.RegistrationPage().Render(r.Context(), w)
-}
-
-func (h *BaseHandler) writingPageHandler(w http.ResponseWriter, r *http.Request) {
-	authorized, user := isAuthorised(r, h)
-	layouts.WritingPage(authorized, user).Render(r.Context(), w)
-}
-
-func (h *BaseHandler) writingFormHandler(w http.ResponseWriter, r *http.Request) {
-	authorized, user := isAuthorised(r, h)
-	if !authorized || !user.IsAdmin {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
-
-	r.ParseForm()
-
-	slug := r.PostFormValue("slug")
-	title := r.PostFormValue("title")
-	textMD := r.PostFormValue("textMD")
-
-	re := regexp.MustCompile(`^[a-z0-9-]+$`)
-	match := re.MatchString(slug)
-	if !match {
-		slugResult := components.FormWarning("Ссылка может содержать только маленькие латинские буквы, цифры и знак \"-\"")
-		components.WritingForm(slugResult, slug, title, textMD).Render(r.Context(), w)
-		return
-	}
-
-	_, err := h.articleRepo.GetBySlug(slug)
-	if err == nil {
-		slugResult := components.FormWarning("Эта ссылка уже занята")
-		components.WritingForm(slugResult, slug, title, textMD).Render(r.Context(), w)
-		return
-	}
-
-	err = h.articleRepo.Create(slug, title, textMD)
-	if err != nil {
-		slugResult := components.FormWarning("Внутренняя ошибка сервера")
-		components.WritingForm(slugResult, slug, title, textMD).Render(r.Context(), w)
-		return
-	}
-
-	components.WritingSuccessful(slug).Render(r.Context(), w)
 }

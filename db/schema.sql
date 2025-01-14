@@ -4,7 +4,8 @@ CREATE TABLE
         slug TEXT NOT NULL UNIQUE,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         title TEXT NOT NULL,
-        textMD TEXT NOT NULL
+        textMD TEXT NOT NULL,
+        description TEXT NOT NULL,
     );
 
 CREATE TABLE users (
