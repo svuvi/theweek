@@ -26,7 +26,7 @@ func (r *InviteRepo) Create() (*models.Invite, error) {
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		return &models.Invite{}, fmt.Errorf("this database probably doesn't suppore LastInsertId function:\n%s", err.Error())
+		return &models.Invite{}, fmt.Errorf("похоже, что эта база данных не поддерживает функцию LastInsertId:\n%s", err.Error())
 	}
 	return r.GetByID(int(id))
 }
@@ -77,7 +77,7 @@ func (r *InviteRepo) Claim(code string, userID int) error {
 		return err
 	}
 	if affected, err := res.RowsAffected(); affected != 1 && err == nil {
-		return fmt.Errorf("unexpected amount of rows affected: %d", affected)
+		return fmt.Errorf("изменено непредвиденное количество строк: %d", affected)
 	}
 	return nil
 }
@@ -89,7 +89,7 @@ func (r *InviteRepo) Delete(code string) error {
 		return err
 	}
 	if affected, err := res.RowsAffected(); affected != 1 && err == nil {
-		return fmt.Errorf("unexpected amount of rows affected: %d", affected)
+		return fmt.Errorf("изменено непредвиденное количество строк: %d", affected)
 	}
 	return nil
 }
