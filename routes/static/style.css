@@ -195,6 +195,7 @@ article {
     width: 945px;
     overflow-wrap: break-word;
     margin: auto;
+    margin-bottom: 150px;
     h1 {
         font-size: 40px;
         line-height: 46px;
