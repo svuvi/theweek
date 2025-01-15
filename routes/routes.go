@@ -17,6 +17,7 @@ type BaseHandler struct {
 	userRepo    models.UserRepository
 	sessionRepo models.SessionRepository
 	inviteRepo  models.InviteRepository
+	imageRepo   models.ImageRepository
 }
 
 func NewBaseHandler(db *sql.DB) *BaseHandler {
@@ -25,6 +26,7 @@ func NewBaseHandler(db *sql.DB) *BaseHandler {
 		userRepo:    repositories.NewUserRepo(db),
 		sessionRepo: repositories.NewSessionRepo(db),
 		inviteRepo:  repositories.NewInviteRepo(db),
+		imageRepo:   repositories.NewImageRepo(db),
 	}
 }
 
