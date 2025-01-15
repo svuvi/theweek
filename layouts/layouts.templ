@@ -44,12 +44,13 @@ templ Article(article *models.Article, authorized bool, user *models.User) {
 	@Base(fmt.Sprint(article.Title, " - The Week"), authorized, user, components.MetaTagsArticle(article)) {
 		<article>
 			<div class="article-head">
-				
 				<h1>{ article.Title }</h1>
 				<p>{ article.Description }</p>
 				<p class="publishing-date">{ article.CreatedAt.String() }</p>
 			</div>
-			<img src="/static/placeholder-cover.jpg" alt="Картинка обложки статьи">
+			if article.CoverImageID != 0 {
+				<img src={ fmt.Sprint("/images/", article.CoverImageID) } alt="Картинка обложки статьи">
+			}
 			<div class="article-content">@components.MarkdownText(article.TextMD)</div>
 		</article>
 	}
@@ -101,10 +102,10 @@ templ RegistrationNoInvite(expired bool) {
 	}
 }
 
-templ WritingPage(authorized bool, user *models.User) {
+templ PublishingPage(authorized bool, user *models.User) {
 	@BaseDashboard("Публикация статьи в The Week") {
 		if authorized && user.IsAdmin {
-			@components.PublishingForm(templ.NopComponent, "", "", "", "")
+			@components.PublishingForm(templ.NopComponent, templ.NopComponent, "", "", "", "")
 		} else {
 			<div class="inter-regular">
 				<p>Вы не авторизованы делать публикации</p>

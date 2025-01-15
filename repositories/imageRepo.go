@@ -18,7 +18,7 @@ func NewImageRepo(db *sql.DB) *ImageRepo {
 }
 
 func (r *ImageRepo) Create(filename string, uploadedBy int, content []byte) (int, error) {
-	res, err := r.db.Exec("INSET INTO images(filename, uploaded_by, content) VALUES (?, ?, ?)", filename, uploadedBy, content)
+	res, err := r.db.Exec("INSERT INTO images(filename, uploaded_by, content) VALUES (?, ?, ?)", filename, uploadedBy, content)
 	if err != nil {
 		return 0, err
 	}
@@ -37,6 +37,21 @@ func (r *ImageRepo) Get(id int) (*models.Image, error) {
 	err := row.Scan(&i.ID, &i.Filename, &i.UploadedBy, &i.UploadedAt, &i.Content)
 
 	return &i, err
+}
+
+func (r *ImageRepo) GetName(id int) (string, error) {
+	if id == 0 {
+		return "", nil
+	}
+
+	row := r.db.QueryRow("SELECT filename FROM images WHERE id=?", id)
+	var s string
+	err := row.Scan(&s)
+	if err != nil {
+		s = ""
+	}
+
+	return s, err
 }
 
 func (r *ImageRepo) ChangeFilename(id int, newFilename string) error {

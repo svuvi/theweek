@@ -3,8 +3,10 @@ package routes
 import (
 	"database/sql"
 	"embed"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/svuvi/theweek/layouts"
@@ -57,6 +59,7 @@ func (h *BaseHandler) NewRouter() http.Handler {
 	mux.HandleFunc("GET /dashboard/publishing/", h.dashboardPublishing)
 	mux.HandleFunc("POST /dashboard/publishing/", h.publishingFormHandler)
 
+	mux.HandleFunc("GET /images/{imageID}", h.imageHandler)
 	mux.Handle("GET /static/", http.FileServerFS(static))
 
 	return mux
@@ -79,9 +82,21 @@ func (h *BaseHandler) articleHandler(w http.ResponseWriter, r *http.Request) {
 
 	article, err := h.articleRepo.GetBySlug(slug)
 	if err != nil {
-		http.Error(w, "404 Страница не найдена", http.StatusNotFound)
+		http.NotFound(w, r)
 		return
 	}
+
+	/* coverImageName, err := h.imageRepo.GetName(article.CoverImageID)
+	if err != nil {
+		log.Print("Ошибка при попытке получить имя картинки из БД:\n", err)
+	}
+
+	var coverImagePath string
+	if coverImageName != "" {
+		coverImagePath = fmt.Sprintf("/images/%d/%s", article.CoverImageID, coverImageName)
+	} else {
+		coverImagePath = ""
+	} */
 
 	authorized, user := isAuthorised(r, h)
 	layouts.Article(article, authorized, user).Render(r.Context(), w)
@@ -150,4 +165,43 @@ func (h *BaseHandler) registrationPageHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	layouts.RegistrationPage().Render(r.Context(), w)
+}
+
+func (h *BaseHandler) imageHandler(w http.ResponseWriter, r *http.Request) {
+	i, err := strconv.ParseInt(r.PathValue("imageID"), 10, 64)
+	id := int(i)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	/* filename := r.PathValue("filename")
+	if filename == "" {
+		http.NotFound(w, r)
+		return
+	} */
+
+	img, err := h.imageRepo.Get(id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	/* if img.Filename != filename {
+		http.NotFound(w, r)
+		return
+	} */
+
+	w.Header().Set("Content-Type", http.DetectContentType(img.Content))
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, img.Filename))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(img.Content)))
+
+	_, err = w.Write(img.Content)
+	if err != nil {
+		http.Error(w, "Ошибка при отправке файла", http.StatusInternalServerError)
+	}
 }

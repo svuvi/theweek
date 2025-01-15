@@ -13,6 +13,7 @@ type Image struct {
 type ImageRepository interface {
 	Create(filename string, uploadedBy int, content []byte) (int, error) // Returns ID of the uploaded image
 	Get(id int) (*Image, error)
+	GetName(id int) (string, error)
 	ChangeFilename(id int, newFilename string) error
 	Delete(id int) error
 }

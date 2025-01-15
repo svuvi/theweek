@@ -6,6 +6,8 @@ CREATE TABLE
         title TEXT NOT NULL,
         textMD TEXT NOT NULL,
         description TEXT NOT NULL,
+        cover_image_id INTEGER,
+        FOREIGN KEY (cover_image_id) REFERENCES images (id)
     );
 
 CREATE TABLE users (

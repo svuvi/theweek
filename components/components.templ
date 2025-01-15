@@ -41,7 +41,9 @@ templ ArticlePreview(article *models.Article) {
         </div>
         <div class="preview-cover">
             <a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>
-                <img src="/static/placeholder-cover.jpg" alt="Картинка обложки статьи">
+                if article.CoverImageID != 0 {
+				    <img src={ fmt.Sprint("/images/", article.CoverImageID) } alt="Картинка обложки статьи">
+			    }
             </a>
         </div>
     </div>
@@ -156,18 +158,21 @@ templ Registered() {
     </div>
 }
 
-templ PublishingForm(slugResult templ.Component, slug, title, textMD, description string) {
+templ PublishingForm(slugResult, coverResult templ.Component, slug, title, textMD, description string) {
     <div id="publishing-form" class="inter-regular">
-        <form hx-post="/dashboard/publishing/" hx-target="#publishing-form" hx-swap="outerHTML">
-            <label>Ссылка</label>
+        <form hx-post="/dashboard/publishing/" hx-target="#publishing-form" hx-swap="outerHTML" enctype="multipart/form-data">
+            <label for="slug">Ссылка</label>
             <input type="text" name="slug" pattern="^[a-z0-9-]+$" value={ slug } required/>
             @slugResult
-            <label>Заголовок</label>
+            <label for="title">Заголовок</label>
             <input type="text" name="title" value={ title } required/>
             <label>Описание (лучше до 160 символов)</label>
             <textarea name="description" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{ description }</textarea>
             <label>Текст статьи в формате Markdown разметки</label>
             <textarea name="textMD" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{ textMD }</textarea>
+            <label for="coverImage">Картинка обложки (загружай ТОЛЬКО уже сжатые картинки)</label>
+            @coverResult
+            <input type="file" name="coverImage" accept="image/*">
             <button>Отправить</button>
         </form>
     </div>
