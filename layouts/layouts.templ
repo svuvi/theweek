@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-templ Base(tabTitle string, authorized bool, user *models.User, metaTags templ.Component) {
+templ Base(tabTitle string, metaTags templ.Component) {
 	<!DOCTYPE html>
 	<html lang="ru-RU">
 		<head>
@@ -24,14 +24,14 @@ templ Base(tabTitle string, authorized bool, user *models.User, metaTags templ.C
 			@metaTags
 		</head>
 		<body>
-			@components.Header(authorized, user)
 			{ children... }
 		</body>
 	</html>
 }
 
 templ Index(articles []*models.Article, authorized bool, user *models.User) {
-	@Base("The Week - Новости Урбанойда", authorized, user, components.MetaTagsSite()) {
+	@Base("The Week - Новости Урбанойда", components.MetaTagsSite()) {
+		@components.Header(authorized, user)
 		<div class="content-feed">
 			for _, art := range slices.Backward(articles) {
 				@components.ArticlePreview(art)
@@ -41,7 +41,8 @@ templ Index(articles []*models.Article, authorized bool, user *models.User) {
 }
 
 templ Article(article *models.Article, authorized bool, user *models.User) {
-	@Base(fmt.Sprint(article.Title, " - The Week"), authorized, user, components.MetaTagsArticle(article)) {
+	@Base(fmt.Sprint(article.Title, " - The Week"), components.MetaTagsArticle(article)) {
+		@components.Header(authorized, user)
 		<article>
 			<div class="article-head">
 				<h1>{ article.Title }</h1>
@@ -57,7 +58,8 @@ templ Article(article *models.Article, authorized bool, user *models.User) {
 }
 
 templ LoginPage(authorized bool, user *models.User) {
-	@Base("Вход в Аккаунт The Week", authorized, user, templ.NopComponent) {
+	@Base("Вход в Аккаунт The Week", templ.NopComponent) {
+		@components.Header(authorized, user)
 		if !authorized {
 			@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
 		} else {
@@ -71,13 +73,15 @@ templ LoginPage(authorized bool, user *models.User) {
 }
 
 templ RegistrationPage() {
-	@Base("Регистрация Аккаунта в The Week", false,&models.User{}, templ.NopComponent) {
+	@Base("Регистрация Аккаунта в The Week", templ.NopComponent) {
+		@components.Header(false, &models.User{})
 		@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
 	}
 }
 
 templ AlreadyRegisteredPage(user *models.User) {
-	@Base("Вы уже зарегестрированы в The Week", true, user, templ.NopComponent) {
+	@Base("Вы уже зарегестрированы в The Week", templ.NopComponent) {
+		@components.Header(true, user)
 		<div class="inter-regular">
 			<p>Вы уже зарегестрированы.</p>
 			<a href="/logout" class="button-1">Выйти из аккаунта.</a>
@@ -87,7 +91,8 @@ templ AlreadyRegisteredPage(user *models.User) {
 }
 
 templ RegistrationNoInvite(expired bool) {
-	@Base("Как создать аккаунт в The Week", false, &models.User{}, templ.NopComponent) {
+	@Base("Как создать аккаунт в The Week", templ.NopComponent) {
+		@components.Header(false, &models.User{})
 		<h1>Как создать аккаунт в The Week</h1>
 		if expired {
 			<p>Похоже, что ты воспользовался ссылкой приглашением. Но эта ссылка уже была использована</p>
