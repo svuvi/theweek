@@ -39,13 +39,13 @@ templ ArticlePreview(article *models.Article) {
                 <p>{ article.Description }</p>
             </a>
         </div>
-        <div class="preview-cover">
-            <a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>
+        <a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>
+            <div class="preview-cover">
                 if article.CoverImageID != 0 {
-				    <img src={ fmt.Sprint("/images/", article.CoverImageID) } alt="Картинка обложки статьи">
-			    }
-            </a>
-        </div>
+                    <img src={ fmt.Sprint("/images/", article.CoverImageID) } alt="Картинка обложки статьи">
+                }
+            </div>
+        </a>
     </div>
 }
 
