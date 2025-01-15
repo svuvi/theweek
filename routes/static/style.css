@@ -181,9 +181,15 @@ ul.nav-list {
 }
 
 .preview-cover {
-    img {
-        width: 520px;
-    }
+    max-height: 380px;
+    overflow: hidden;
+
+}
+
+.preview-cover img {
+    width: 520px;
+    height: 100%;
+    object-fit: cover;
 }
 
 img {
