@@ -32,18 +32,25 @@ templ Base(tabTitle string, authorized bool, user *models.User, metaTags templ.C
 
 templ Index(articles []*models.Article, authorized bool, user *models.User) {
 	@Base("The Week - Новости Урбанойда", authorized, user, components.MetaTagsSite()) {
-		for _, art := range slices.Backward(articles) {
-			@components.ArticlePreview(art)
-		}
+		<div class="content-feed">
+			for _, art := range slices.Backward(articles) {
+				@components.ArticlePreview(art)
+			}
+		</div>
 	}
 }
 
 templ Article(article *models.Article, authorized bool, user *models.User) {
 	@Base(fmt.Sprint(article.Title, " - The Week"), authorized, user, components.MetaTagsArticle(article)) {
 		<article>
-			<h1>{ article.Title }</h1>
-			<p>{ article.CreatedAt.String() }</p>
-			@components.MarkdownText(article.TextMD)
+			<div class="article-head">
+				
+				<h1>{ article.Title }</h1>
+				<p>{ article.Description }</p>
+				<p class="publishing-date">{ article.CreatedAt.String() }</p>
+			</div>
+			<img src="/static/placeholder-cover.jpg" alt="Картинка обложки статьи">
+			<div class="article-content">@components.MarkdownText(article.TextMD)</div>
 		</article>
 	}
 }

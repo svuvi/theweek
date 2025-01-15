@@ -32,8 +32,18 @@ templ MetaTagsSite() {
 
 templ ArticlePreview(article *models.Article) {
     <div class="article-preview">
-        <h1><a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>{ article.Title }</a></h1>
-        <p>{ article.Description }</p>
+        
+        <div class="text-preview">
+            <a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>
+                <h1>{ article.Title }</h1>
+                <p>{ article.Description }</p>
+            </a>
+        </div>
+        <div class="preview-cover">
+            <a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>
+                <img src="/static/placeholder-cover.jpg" alt="Картинка обложки статьи">
+            </a>
+        </div>
     </div>
 }
 
@@ -65,12 +75,12 @@ templ Header(authorized bool, user *models.User) {
                         </div>
                         <a href={ templ.URL(fmt.Sprint("/user/", user.Username)) }>{ user.Username }</a>
                     </div>
-                    <div class="button-1">
-                        <a href="/logout">ВЫЙТИ</a>
+                    <div>
+                        <a href="/logout" class="button-1">ВЫЙТИ</a>
                     </div>
                 } else {
-                    <div class="button-1">
-                        <a href="/login">ВОЙТИ</a>
+                    <div>
+                        <a href="/login" class="button-1">ВОЙТИ</a>
                     </div>
                 }
             </div>

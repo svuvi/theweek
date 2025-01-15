@@ -37,13 +37,24 @@
 /* End fonts */
 
 body {
-    margin: 0 8%;
+    width: 1200px;
+    margin: auto;
     font-family: Shobhika;
 }
 
 a {
     text-decoration: none;
     color: #000;
+}
+
+a:hover {
+    color: #636363;
+}
+
+.logo {
+    a:hover {
+        color: #000;
+    }
 }
 
 header {
@@ -102,6 +113,10 @@ header {
   }
 }
 
+a.button-1:hover {
+    color: white;
+}
+
 .button-1:hover,
 .button-1:focus {
   background-color: rgb(152, 184, 206);
@@ -136,6 +151,72 @@ ul.nav-list {
 
 .nav-bottom .nav-list {
     margin-bottom: 0.8em;
+}
+
+/* Главная страница, лента статей */
+
+.content-feed {
+
+}
+
+.article-preview {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 830px;
+    gap: 30px;
+    padding: 20px 0;
+    border-bottom: 1px solid black;
+}
+
+.text-preview {
+    h1 {
+        font-size: 1.2em;
+        line-height: 1.1875em;
+    }
+    p {
+        line-height: 1.1875em;
+        font-weight: 300;
+    }
+}
+
+.preview-cover {
+    img {
+        width: 520px;
+    }
+}
+
+img {
+    width: 100%;
+}
+
+/* Статья */
+article {
+    width: 945px;
+    overflow-wrap: break-word;
+    margin: auto;
+    h1 {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    p {
+        font-size: 20px;
+        line-height: 30px;
+    }
+
+    .publishing-date {
+        font-size: 15px;
+        color: #636363;
+    }
+
+    img {
+        margin: 1em 0 3em 0;
+    }
+}
+
+.article-head, .article-content {
+    width: 600px;
+    margin: auto;
 }
 
 /* Страница входа */
