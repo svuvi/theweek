@@ -61,6 +61,8 @@ func (h *BaseHandler) NewRouter() http.Handler {
 	mux.HandleFunc("POST /dashboard/publishing/", h.publishingFormHandler)
 	mux.HandleFunc("POST /dashboard/publishing/{articleID}", h.publishingFormHandler)
 
+	mux.HandleFunc("/delete/{type}/{id}", h.deleteResourceHandler)
+
 	mux.HandleFunc("GET /images/{imageID}", h.imageHandler)
 	mux.Handle("GET /static/", http.FileServerFS(static))
 
@@ -205,5 +207,32 @@ func (h *BaseHandler) imageHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write(img.Content)
 	if err != nil {
 		http.Error(w, "Ошибка при отправке файла", http.StatusInternalServerError)
+	}
+}
+
+func (h *BaseHandler) deleteResourceHandler(w http.ResponseWriter, r *http.Request) {
+	_, user := isAuthorised(r, h)
+	if !user.IsAdmin {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	idValue := r.PathValue("id")
+	typeString := r.PathValue("type")
+	log.Printf("Администратор %s запросил удаление %s с id=%s", user.Username, typeString, idValue)
+
+	id, err := strconv.Atoi(idValue)
+	if err != nil || id < 1 || typeString != "article" { // todo: добавить картинки и другие типы ресурсов по надобности
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	if typeString == "article" {
+		err = h.articleRepo.Delete(id)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
