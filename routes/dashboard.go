@@ -1,15 +1,18 @@
 package routes
 
 import (
+	"database/sql"
 	"io"
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/a-h/templ"
 	"github.com/google/uuid"
 	"github.com/svuvi/theweek/components"
 	"github.com/svuvi/theweek/layouts"
+	"github.com/svuvi/theweek/models"
 )
 
 func (h *BaseHandler) dasboardPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +100,35 @@ func (h *BaseHandler) deleteInvite(w http.ResponseWriter, r *http.Request) {
 
 func (h *BaseHandler) dashboardPublishing(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
-	layouts.PublishingPage(authorized, user).Render(r.Context(), w)
+	if !user.IsAdmin {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	idString := r.PathValue("articleID")
+
+	if idString == "" || idString == "1" {
+		layouts.PublishingPage(authorized, user, &models.Article{ID: 0}).Render(r.Context(), w)
+		return
+	}
+
+	articleID, err := strconv.Atoi(idString)
+	if err != nil || articleID < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	article, err := h.articleRepo.GetByID(articleID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	layouts.PublishingPage(authorized, user, article).Render(r.Context(), w)
 }
 
 func (h *BaseHandler) publishingFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +138,11 @@ func (h *BaseHandler) publishingFormHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	a := models.Article{ID: 0}
+
+	idString := r.PathValue("articleID")
+	a.ID, _ = strconv.Atoi(idString)
+
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		log.Print(err)
@@ -114,23 +150,23 @@ func (h *BaseHandler) publishingFormHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	slug := r.PostFormValue("slug")
-	title := r.PostFormValue("title")
-	description := r.PostFormValue("description")
-	textMD := r.PostFormValue("textMD")
+	a.Slug = r.PostFormValue("slug")
+	a.Title = r.PostFormValue("title")
+	a.Description = r.PostFormValue("description")
+	a.TextMD = r.PostFormValue("textMD")
 
 	re := regexp.MustCompile(`^[a-z0-9-]+$`)
-	match := re.MatchString(slug)
+	match := re.MatchString(a.Slug)
 	if !match {
 		slugResult := components.FormWarning("Ссылка может содержать только маленькие латинские буквы, цифры и знак \"-\"")
-		components.PublishingForm(slugResult, templ.NopComponent, slug, title, textMD, description).Render(r.Context(), w)
+		components.PublishingForm(slugResult, templ.NopComponent, &a).Render(r.Context(), w)
 		return
 	}
 
-	_, err = h.articleRepo.GetBySlug(slug)
-	if err == nil {
+	art, err := h.articleRepo.GetBySlug(a.Slug)
+	if err == nil && art.ID != a.ID {
 		slugResult := components.FormWarning("Эта ссылка уже занята")
-		components.PublishingForm(slugResult, templ.NopComponent, slug, title, textMD, description).Render(r.Context(), w)
+		components.PublishingForm(slugResult, templ.NopComponent, &a).Render(r.Context(), w)
 		return
 	}
 
@@ -153,13 +189,13 @@ func (h *BaseHandler) publishingFormHandler(w http.ResponseWriter, r *http.Reque
 	if file != nil {
 		if fileHeader.Size > 1<<20 {
 			coverResult := components.FormWarning("Файл слишком большой. Максимальный размер: 1МБ.")
-			components.PublishingForm(templ.NopComponent, coverResult, slug, title, textMD, description).Render(r.Context(), w)
+			components.PublishingForm(templ.NopComponent, coverResult, &a).Render(r.Context(), w)
 			return
 		}
 		content, err := io.ReadAll(file)
 		if err != nil {
 			coverResult := components.FormWarning("Ошибка при чтении файла картинки обложки")
-			components.PublishingForm(templ.NopComponent, coverResult, slug, title, textMD, description).Render(r.Context(), w)
+			components.PublishingForm(templ.NopComponent, coverResult, &a).Render(r.Context(), w)
 			return
 		}
 
@@ -167,21 +203,26 @@ func (h *BaseHandler) publishingFormHandler(w http.ResponseWriter, r *http.Reque
 		if err != nil {
 			log.Print(err)
 			coverResult := components.FormWarning("Ошибка при сохранении файла картинки обложки в базу данных")
-			components.PublishingForm(templ.NopComponent, coverResult, slug, title, textMD, description).Render(r.Context(), w)
+			components.PublishingForm(templ.NopComponent, coverResult, &a).Render(r.Context(), w)
 			return
 		}
-
 	} else {
 		coverImageID = 0
 	}
+	a.CoverImageID = coverImageID
 
-	err = h.articleRepo.Create(slug, title, textMD, description, coverImageID)
+	if a.ID == 0 {
+		err = h.articleRepo.Create(a.Slug, a.Title, a.TextMD, a.Description, coverImageID)
+	} else {
+		err = h.articleRepo.Update(&a)
+	}
+
 	if err != nil {
 		log.Print(err)
 		slugResult := components.FormWarning("Внутренняя ошибка сервера")
-		components.PublishingForm(slugResult, templ.NopComponent, slug, title, textMD, description).Render(r.Context(), w)
+		components.PublishingForm(slugResult, templ.NopComponent, &a).Render(r.Context(), w)
 		return
 	}
 
-	components.PublishingSuccessful(slug).Render(r.Context(), w)
+	components.PublishingSuccessful(a.Slug).Render(r.Context(), w)
 }

@@ -30,9 +30,8 @@ templ MetaTagsSite() {
 	<meta property="og:locale" content="ru-RU"/>
 }
 
-templ ArticlePreview(article *models.Article) {
+templ ArticleCard(article *models.Article) {
     <div class="article-preview">
-        
         <div class="text-preview">
             <a href={ templ.URL(fmt.Sprint("/", article.Slug)) }>
                 <h1>{ article.Title }</h1>
@@ -49,6 +48,20 @@ templ ArticlePreview(article *models.Article) {
     </div>
 }
 
+templ Article(article *models.Article) {
+    <article>
+        <div class="article-head">
+            <h1>{ article.Title }</h1>
+            <p>{ article.Description }</p>
+            <p class="publishing-date">{ article.CreatedAt.String() }</p>
+        </div>
+        if article.CoverImageID != 0 {
+            <img src={ fmt.Sprint("/images/", article.CoverImageID) } alt="Картинка обложки статьи">
+        }
+        <div class="article-content">@MarkdownText(article.TextMD)</div>
+    </article>
+}
+
 templ Empty() {
 }
 
@@ -56,7 +69,7 @@ templ MarkdownText(mdText string) {
 	@templ.Raw(mdStringToHTML(mdText))
 }
 
-templ Header(authorized bool, user *models.User) {
+templ Header(authorized bool, user *models.User, review bool) {
     <header class="inter-regular">
         <div class="nav-top">
             <div class="icon">
@@ -88,7 +101,13 @@ templ Header(authorized bool, user *models.User) {
             </div>
         </div>
         <div class="nav-mid">
-            <div class="logo chomsky"><h1><a href="/">The Week</a></h1></div>
+            <div class="logo chomsky"><h1>
+            if review {
+                <a href="/">Review</a>
+            } else {
+                <a href="/">The Week</a>
+            }
+            </h1></div>
         </div>
         <div class="nav-bottom">
             <ul class="nav-list inter-regular">
@@ -158,18 +177,18 @@ templ Registered() {
     </div>
 }
 
-templ PublishingForm(slugResult, coverResult templ.Component, slug, title, textMD, description string) {
+templ PublishingForm(slugResult, coverResult templ.Component, a *models.Article) {
     <div id="publishing-form" class="inter-regular">
-        <form hx-post="/dashboard/publishing/" hx-target="#publishing-form" hx-swap="outerHTML" enctype="multipart/form-data">
+        <form hx-post={ fmt.Sprint("/dashboard/publishing/", a.ID) } hx-target="#publishing-form" hx-swap="outerHTML" enctype="multipart/form-data">
             <label for="slug">Ссылка</label>
-            <input type="text" name="slug" pattern="^[a-z0-9-]+$" value={ slug } required/>
+            <input type="text" name="slug" pattern="^[a-z0-9-]+$" value={ a.Slug } required/>
             @slugResult
             <label for="title">Заголовок</label>
-            <input type="text" name="title" value={ title } required/>
+            <input type="text" name="title" value={ a.Title } required/>
             <label>Описание (лучше до 160 символов)</label>
-            <textarea name="description" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{ description }</textarea>
+            <textarea name="description" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{ a.Description }</textarea>
             <label>Текст статьи в формате Markdown разметки</label>
-            <textarea name="textMD" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{ textMD }</textarea>
+            <textarea name="textMD" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'>{ a.TextMD }</textarea>
             <label for="coverImage">Картинка обложки (загружай ТОЛЬКО уже сжатые картинки)</label>
             @coverResult
             <input type="file" name="coverImage" accept="image/*">

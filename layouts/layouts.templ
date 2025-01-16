@@ -31,10 +31,10 @@ templ Base(tabTitle string, metaTags templ.Component) {
 
 templ Index(articles []*models.Article, authorized bool, user *models.User) {
 	@Base("The Week - Новости Урбанойда", components.MetaTagsSite()) {
-		@components.Header(authorized, user)
+		@components.Header(authorized, user, false)
 		<div class="content-feed">
 			for _, art := range slices.Backward(articles) {
-				@components.ArticlePreview(art)
+				@components.ArticleCard(art)
 			}
 		</div>
 	}
@@ -42,24 +42,17 @@ templ Index(articles []*models.Article, authorized bool, user *models.User) {
 
 templ Article(article *models.Article, authorized bool, user *models.User) {
 	@Base(fmt.Sprint(article.Title, " - The Week"), components.MetaTagsArticle(article)) {
-		@components.Header(authorized, user)
-		<article>
-			<div class="article-head">
-				<h1>{ article.Title }</h1>
-				<p>{ article.Description }</p>
-				<p class="publishing-date">{ article.CreatedAt.String() }</p>
-			</div>
-			if article.CoverImageID != 0 {
-				<img src={ fmt.Sprint("/images/", article.CoverImageID) } alt="Картинка обложки статьи">
-			}
-			<div class="article-content">@components.MarkdownText(article.TextMD)</div>
-		</article>
+		@components.Header(authorized, user, false)
+		if user.IsAdmin {
+			<a class="button-1" href={ templ.SafeURL(fmt.Sprint("/dashboard/publishing/", article.ID)) }> Редактировать</a>
+		}
+		@components.Article(article)
 	}
 }
 
 templ LoginPage(authorized bool, user *models.User) {
 	@Base("Вход в Аккаунт The Week", templ.NopComponent) {
-		@components.Header(authorized, user)
+		@components.Header(authorized, user, false)
 		if !authorized {
 			@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
 		} else {
@@ -74,14 +67,14 @@ templ LoginPage(authorized bool, user *models.User) {
 
 templ RegistrationPage() {
 	@Base("Регистрация Аккаунта в The Week", templ.NopComponent) {
-		@components.Header(false, &models.User{})
+		@components.Header(false, &models.User{}, false)
 		@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
 	}
 }
 
 templ AlreadyRegisteredPage(user *models.User) {
 	@Base("Вы уже зарегестрированы в The Week", templ.NopComponent) {
-		@components.Header(true, user)
+		@components.Header(true, user, false)
 		<div class="inter-regular">
 			<p>Вы уже зарегестрированы.</p>
 			<a href="/logout" class="button-1">Выйти из аккаунта.</a>
@@ -92,7 +85,7 @@ templ AlreadyRegisteredPage(user *models.User) {
 
 templ RegistrationNoInvite(expired bool) {
 	@Base("Как создать аккаунт в The Week", templ.NopComponent) {
-		@components.Header(false, &models.User{})
+		@components.Header(false, &models.User{}, false)
 		<h1>Как создать аккаунт в The Week</h1>
 		if expired {
 			<p>Похоже, что ты воспользовался ссылкой приглашением. Но эта ссылка уже была использована</p>
@@ -104,18 +97,5 @@ templ RegistrationNoInvite(expired bool) {
 		</ol>
 		<p>Создание аккаунта позволяет оставлять комментарии. По дополнительному запросу, тебе может быть одобрено право публиковать свои заметки.</p>
 		<p>Система регистрации по приглашениям защищает The Week от непрошенных гостей, не имеющих отношение к нашему серверу.</p>
-	}
-}
-
-templ PublishingPage(authorized bool, user *models.User) {
-	@BaseDashboard("Публикация статьи в The Week") {
-		if authorized && user.IsAdmin {
-			@components.PublishingForm(templ.NopComponent, templ.NopComponent, "", "", "", "")
-		} else {
-			<div class="inter-regular">
-				<p>Вы не авторизованы делать публикации</p>
-				<a href="/">На главную</a>
-			</div>
-		}
 	}
 }

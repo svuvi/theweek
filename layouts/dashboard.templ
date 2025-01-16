@@ -2,7 +2,9 @@ package layouts
 
 
 import (
-  "github.com/svuvi/theweek/models"
+    "fmt"
+
+    "github.com/svuvi/theweek/models"
 	"github.com/svuvi/theweek/components"
 )
 
@@ -51,4 +53,25 @@ templ DashboardUsers(users []*models.User) {
     @BaseDashboard("Пользователи - Панель управления The Week") {
         @components.UserTable(users)
     }
+}
+
+
+templ PublishingPage(authorized bool, user *models.User, article *models.Article) {
+	@BaseDashboard("Публикация статьи в The Week") {
+		if authorized && user.IsAdmin {
+            @components.PublishingForm(templ.NopComponent, templ.NopComponent, article)
+		} else {
+			<div class="inter-regular">
+				<p>Вы не авторизованы делать публикации</p>
+				<a href="/">На главную</a>
+			</div>
+		}
+	}
+}
+
+templ ArticleReviewMode(article *models.Article, authorized bool, user *models.User) {
+	@Base(fmt.Sprint(article.Title, " - The Week"), components.MetaTagsArticle(article)) {
+		@components.Header(authorized, user, true)
+		@components.Article(article)
+	}
 }

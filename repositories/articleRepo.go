@@ -83,6 +83,19 @@ func (r *ArticleRepo) GetAll() ([]*models.Article, error) {
 	return articles, nil
 }
 
+func (r *ArticleRepo) Update(a *models.Article) error {
+	i := IntToNullInt16(a.CoverImageID)
+	res, err := r.db.Exec("UPDATE articles SET slug=$1, created_at=$2, title=$3, textMD=$4, description=$5, cover_image_id=$6 WHERE id=$7",
+						a.Slug, a.CreatedAt, a.Title, a.TextMD, a.Description, i, a.ID)
+	if err != nil {
+		return err
+	}
+	if affected, err := res.RowsAffected(); affected != 1 && err == nil {
+		return fmt.Errorf("изменено непредвиденное количество строк: %d", affected)
+	}
+	return nil
+}
+
 func (r *ArticleRepo) Delete(id int) error {
 	res, err := r.db.Exec("DELETE FROM articles WHERE id=$1", id)
 	if err != nil {

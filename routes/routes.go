@@ -57,7 +57,9 @@ func (h *BaseHandler) NewRouter() http.Handler {
 	mux.HandleFunc("POST /dashboard/invites/create", h.createInvite)
 	mux.HandleFunc("DELETE /dashboard/invites/delete/{code}", h.deleteInvite)
 	mux.HandleFunc("GET /dashboard/publishing/", h.dashboardPublishing)
+	mux.HandleFunc("GET /dashboard/publishing/{articleID}", h.dashboardPublishing)
 	mux.HandleFunc("POST /dashboard/publishing/", h.publishingFormHandler)
+	mux.HandleFunc("POST /dashboard/publishing/{articleID}", h.publishingFormHandler)
 
 	mux.HandleFunc("GET /images/{imageID}", h.imageHandler)
 	mux.Handle("GET /static/", http.FileServerFS(static))

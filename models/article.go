@@ -16,9 +16,10 @@ type Article struct {
 
 type ArticleRepository interface {
 	Create(slug, title, textMD, description string, coverImageID int) error // coverImageID = 0 если отсутствует
-	SetCoverImage(id int, newCoverImageID int) error                                // coverImageID = 0 если отсутствует
 	GetByID(id int) (*Article, error)
 	GetBySlug(slug string) (*Article, error)
 	GetAll() ([]*Article, error)
+	Update(*Article) error
+	SetCoverImage(id int, newCoverImageID int) error                                // coverImageID = 0 если отсутствует
 	Delete(id int) error
 }
