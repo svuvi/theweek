@@ -38,7 +38,7 @@ templ Base(tabTitle string, metaTags templ.Component) {
 
 templ Index(articles []*models.Article, authorized bool, user *models.User) {
 	@Base("The Week - Новости Урбанойда", components.MetaTagsSite()) {
-		@components.Header(authorized, user, false)
+		@components.Header(user, false)
 		<div class="content-feed">
 			for _, art := range slices.Backward(articles) {
 				@components.ArticleCard(art)
@@ -49,7 +49,7 @@ templ Index(articles []*models.Article, authorized bool, user *models.User) {
 
 templ Article(article *models.Article, authorized bool, user *models.User) {
 	@Base(fmt.Sprint(article.Title, " - The Week"), components.MetaTagsArticle(article)) {
-		@components.Header(authorized, user, false)
+		@components.Header(user, false)
 		if user.IsAdmin {
 			<a class="button-1" href={ templ.SafeURL(fmt.Sprint("/dashboard/publishing/", article.ID)) }>📝 Редактировать</a>
 			<a class="button-1" href={ templ.SafeURL(fmt.Sprint("/delete/article/", article.ID)) } hx-confirm="Точно? Удаленную статью невозможно восстановить">🗑️ Удалить</a>
@@ -60,7 +60,7 @@ templ Article(article *models.Article, authorized bool, user *models.User) {
 
 templ LoginPage(authorized bool, user *models.User) {
 	@Base("Вход в Аккаунт The Week", templ.NopComponent) {
-		@components.Header(authorized, user, false)
+		@components.Header(user, false)
 		if !authorized {
 			@components.LoginForm("", "", templ.NopComponent, templ.NopComponent)
 		} else {
@@ -75,14 +75,14 @@ templ LoginPage(authorized bool, user *models.User) {
 
 templ RegistrationPage() {
 	@Base("Регистрация Аккаунта в The Week", templ.NopComponent) {
-		@components.Header(false, &models.User{}, false)
+		@components.Header(&models.User{ID: 0}, false)
 		@components.RegistrationForm("", "", "", templ.NopComponent, templ.NopComponent, templ.NopComponent)
 	}
 }
 
 templ AlreadyRegisteredPage(user *models.User) {
 	@Base("Вы уже зарегестрированы в The Week", templ.NopComponent) {
-		@components.Header(true, user, false)
+		@components.Header(user, false)
 		<div class="inter-regular">
 			<p>Вы уже зарегестрированы.</p>
 			<a href="/logout" class="button-1">Выйти из аккаунта.</a>
@@ -93,7 +93,7 @@ templ AlreadyRegisteredPage(user *models.User) {
 
 templ RegistrationNoInvite(expired bool) {
 	@Base("Как создать аккаунт в The Week", templ.NopComponent) {
-		@components.Header(false, &models.User{}, false)
+		@components.Header(&models.User{ID: 0}, false)
 		<h1>Как создать аккаунт в The Week</h1>
 		if expired {
 			<p>Похоже, что ты воспользовался ссылкой приглашением. Но эта ссылка уже была использована</p>

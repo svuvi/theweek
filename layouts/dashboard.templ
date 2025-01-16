@@ -71,7 +71,7 @@ templ PublishingPage(authorized bool, user *models.User, article *models.Article
 
 templ ArticleReviewMode(article *models.Article, authorized bool, user *models.User) {
 	@Base(fmt.Sprint(article.Title, " - The Week"), components.MetaTagsArticle(article)) {
-		@components.Header(authorized, user, true)
+		@components.Header(user, true)
 		@components.Article(article)
 	}
 }

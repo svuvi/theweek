@@ -69,7 +69,7 @@ templ MarkdownText(mdText string) {
 	@templ.Raw(mdStringToHTML(mdText))
 }
 
-templ Header(authorized bool, user *models.User, review bool) {
+templ Header(user *models.User, review bool) {
     <header class="inter-regular">
         <div class="nav-top">
             <div class="icon">
@@ -83,7 +83,7 @@ templ Header(authorized bool, user *models.User, review bool) {
                 <li>ЦУКУСИ</li>
             </ul>
             <div class="account">
-                if authorized {
+                if user.ID != 0 {
                     <div class="user-corner">
                         <div class="icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" style="transform: scale(1);" fill="none"><path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
