@@ -177,6 +177,31 @@ templ Registered() {
     </div>
 }
 
+templ PasswordChangeForm(passwordResult, newPasswordResult, repeatResult templ.Component, password, newPassword, repeat string) {
+    <div id="password-change-form" class="registration-form inter-regular">
+		<form hx-post="" hx-target="#password-change-form" hx-swap="outerHTML">
+			<label for="passwordCurrent">Текущий пароль:</label>
+			<input type="password" name="passwordCurrent" value={ password }>
+            @passwordResult
+			<br>
+			<label for="passwordNew">Новый пароль:</label>
+			<input type="password" name="passwordNew" value={ newPassword }>
+            @newPasswordResult
+			<label for="passwordNewRepeat">Повторить новый пароль:</label>
+			<input type="password" name="passwordNewRepeat" value={ repeat}>
+            @repeatResult
+            <button>Сменить пароль</button>
+		</form>
+	</div>
+}
+
+templ PasswordChanged() {
+    <p>Пароль обновлён.</p>
+    <a href="/account/">Вернуться к настройкам аккаунта</a>
+    <br>
+    <a href="/">На главную</a>
+}
+
 templ PublishingForm(slugResult, coverResult templ.Component, a *models.Article) {
     <div id="publishing-form" class="inter-regular">
         <form hx-post={ fmt.Sprint("/dashboard/publishing/", a.ID) } hx-target="#publishing-form" hx-swap="outerHTML" enctype="multipart/form-data">
@@ -248,6 +273,10 @@ templ InviteTable(invites []*models.Invite) {
                 }
             </tbody>
         </table>
+}
+
+templ ArticleDeleted() {
+    <p>Статья успешно удалена</p>
 }
 
 templ UserTable(users []*models.User) {

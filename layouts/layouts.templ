@@ -52,7 +52,7 @@ templ Article(article *models.Article, authorized bool, user *models.User) {
 		@components.Header(user, false)
 		if user.IsAdmin {
 			<a class="button-1" href={ templ.SafeURL(fmt.Sprint("/dashboard/publishing/", article.ID)) }>📝 Редактировать</a>
-			<a class="button-1" href={ templ.SafeURL(fmt.Sprint("/delete/article/", article.ID)) } hx-confirm="Точно? Удаленную статью невозможно восстановить">🗑️ Удалить</a>
+			<button class="button-1" hx-get={ fmt.Sprint("/delete/article/", article.ID) } hx-confirm="Точно? Удаленную статью невозможно восстановить" hx-target="this" hx-swap="outerHTML">🗑️ Удалить</button>
 		}
 		@components.Article(article)
 	}
@@ -105,5 +105,26 @@ templ RegistrationNoInvite(expired bool) {
 		</ol>
 		<p>Создание аккаунта позволяет оставлять комментарии. По дополнительному запросу, тебе может быть одобрено право публиковать свои заметки.</p>
 		<p>Система регистрации по приглашениям защищает The Week от непрошенных гостей, не имеющих отношение к нашему серверу.</p>
+	}
+}
+
+templ AccountPage(user *models.User) {
+	@Base("Аккаунт - The Week", templ.NopComponent) {
+		<div class="account-menu inter-regular">
+			<p>👤 { user.Username }</p>
+			<p>Дата регистрации: { user.RegisteredAt.String() }</p>
+			<p>Пароль:
+				<br>
+				<a href="/account/change-password">Сменить пароль</a>
+				<br>
+				<a href="/account/restore-password">Восстановить пароль</a>
+			</p>
+		</div>
+	}
+}
+
+templ ChangePasswordPage(user *models.User) {
+	@Base("Смена пароля - The Week", templ.NopComponent) {
+		@components.PasswordChangeForm(templ.NopComponent, templ.NopComponent, templ.NopComponent, "", "", "")
 	}
 }

@@ -37,14 +37,8 @@ func (h *BaseHandler) loginFormHandler(w http.ResponseWriter, r *http.Request) {
 		earlyReturn = true
 	}
 
-	if password == "" {
-		passwordResult = components.FormWarning("Пароль не может быть пустым")
-		earlyReturn = true
-	} else if len(password) > 72 {
-		passwordResult = components.FormWarning("Пароль слишком длинный")
-		earlyReturn = true
-	} else if len(password) < 6 {
-		passwordResult = components.FormWarning("Пароль слишком короткий")
+	if !acceptablePassword(password) {
+		passwordResult = components.FormWarning("Неприемлимый пароль. Пароль не должен быть короче 6 символов или длиннее 72")
 		earlyReturn = true
 	}
 
@@ -57,14 +51,14 @@ func (h *BaseHandler) loginFormHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := h.userRepo.GetByUsername(username)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		passwordResult = components.FormWarning("Не авторизован")
+		usernameResult = components.FormWarning("Такой пользователь не существует")
 		components.LoginForm(username, password, usernameResult, passwordResult).Render(r.Context(), w)
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassowrd), []byte(password)); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		passwordResult = components.FormWarning("Не авторизован")
+		passwordResult = components.FormWarning("Неверный пароль")
 		components.LoginForm(username, password, usernameResult, passwordResult).Render(r.Context(), w)
 		return
 	}
@@ -131,14 +125,8 @@ func (h *BaseHandler) registrationFormHandler(w http.ResponseWriter, r *http.Req
 		earlyReturn = true
 	}
 
-	if password == "" {
-		passwordResult = components.FormWarning("Пароль не может быть пустым")
-		earlyReturn = true
-	} else if len([]byte(password)) > 72 {
-		passwordResult = components.FormWarning("Пароль слишком длинный")
-		earlyReturn = true
-	} else if len(password) < 6 {
-		passwordResult = components.FormWarning("Пароль слишком короткий")
+	if !acceptablePassword(password) {
+		passwordResult = components.FormWarning("Неприемлимый пароль. Пароль не должен быть короче 6 символов или длиннее 72")
 		earlyReturn = true
 	}
 
@@ -214,4 +202,62 @@ func (h *BaseHandler) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func (h *BaseHandler) changePasswordForm(w http.ResponseWriter, r *http.Request) {
+	authorised, user := isAuthorised(r, h)
+	if !authorised {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	r.ParseForm()
+	passwordCurrent := r.PostFormValue("passwordCurrent")
+	passwordNew := r.PostFormValue("passwordNew")
+	passwordNewRepeat := r.PostFormValue("passwordNewRepeat")
+
+	passwordResult := components.Empty()
+	passwordNewResult := components.Empty()
+	repeatResult := components.Empty()
+	earlyReturn := false
+
+	if !acceptablePassword(passwordCurrent) {
+		passwordResult = components.FormWarning("Неприемлимый пароль. Пароль не должен быть короче 6 символов или длиннее 72")
+		earlyReturn = true
+	} else {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassowrd), []byte(passwordCurrent)); err != nil {
+			passwordResult = components.FormWarning("Неверный пароль")
+			earlyReturn = true
+		}
+	}
+	if !acceptablePassword(passwordNew) {
+		passwordNewResult = components.FormWarning("Неприемлимый пароль. Пароль не должен быть короче 6 символов или длиннее 72")
+		earlyReturn = true
+	}
+	if passwordNew != passwordNewRepeat {
+		repeatResult = components.FormWarning("Повтор не совпадает")
+		earlyReturn = true
+	}
+
+	if earlyReturn {
+		components.PasswordChangeForm(passwordResult, passwordNewResult, repeatResult, passwordCurrent, passwordNew, "").Render(r.Context(), w)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordNew), 14)
+	if err != nil {
+		repeatResult = components.FormWarning("Внутрянняя ошибка сервера. Новый пароль не вступает в силу")
+		components.PasswordChangeForm(passwordResult, passwordNewResult, repeatResult, passwordCurrent, passwordNew, "").Render(r.Context(), w)
+		return
+	}
+
+	err = h.userRepo.ChangePassword(user.ID, string(hashedPassword))
+	if err != nil {
+		repeatResult = components.FormWarning("Внутрянняя ошибка сервера. Новый пароль не вступает в силу")
+		components.PasswordChangeForm(passwordResult, passwordNewResult, repeatResult, passwordCurrent, passwordNew, "").Render(r.Context(), w)
+		return
+	}
+
+	components.PasswordChanged().Render(r.Context(), w)
+	log.Printf("Изменен пароль пользователя %s", user.Username)
 }

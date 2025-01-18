@@ -61,3 +61,10 @@ func getInviteCode(r *http.Request) (string, error) {
 
 	return cookie.Value, nil
 }
+
+func acceptablePassword(password string) bool {
+	if len(password) < 6 || len(password) > 72 {
+		return false
+	}
+	return true
+}

@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/svuvi/theweek/components"
 	"github.com/svuvi/theweek/layouts"
 	"github.com/svuvi/theweek/models"
 	"github.com/svuvi/theweek/repositories"
@@ -43,13 +44,16 @@ func (h *BaseHandler) NewRouter() http.Handler {
 
 	mux.HandleFunc("GET /login", h.loginPageHandler)
 	mux.HandleFunc("POST /login", h.loginFormHandler)
-
 	mux.HandleFunc("GET /logout", h.logoutHandler)
 
 	mux.HandleFunc("GET /invite/{code}", h.claimInvite)
-
 	mux.HandleFunc("GET /register", h.registrationPageHandler)
 	mux.HandleFunc("POST /register", h.registrationFormHandler)
+
+	mux.HandleFunc("GET /account/", h.accountPage)
+	mux.HandleFunc("GET /account/change-password", h.changePasswordPage)
+	mux.HandleFunc("POST /account/change-password", h.changePasswordForm)
+	//mux.HandleFunc("GET /account/restore-password", h.restorePasswordPage)
 
 	mux.HandleFunc("GET /dashboard/", h.dasboardPageHandler)
 	mux.HandleFunc("GET /dashboard/users/", h.dashboardUsersHandler)
@@ -108,6 +112,7 @@ func (h *BaseHandler) articleHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *BaseHandler) loginPageHandler(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
+	log.Print(user)
 	layouts.LoginPage(authorized, user).Render(r.Context(), w)
 }
 
@@ -233,6 +238,27 @@ func (h *BaseHandler) deleteResourceHandler(w http.ResponseWriter, r *http.Reque
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
-		http.Redirect(w, r, "/", http.StatusFound)
+		components.ArticleDeleted().Render(r.Context(), w)
+		return
 	}
+}
+
+func (h *BaseHandler) accountPage(w http.ResponseWriter, r *http.Request) {
+	authorised, user := isAuthorised(r, h)
+	if !authorised {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	layouts.AccountPage(user).Render(r.Context(), w)
+}
+
+func (h *BaseHandler) changePasswordPage(w http.ResponseWriter, r *http.Request) {
+	authorised, user := isAuthorised(r, h)
+	if !authorised {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	layouts.ChangePasswordPage(user).Render(r.Context(), w)
 }
