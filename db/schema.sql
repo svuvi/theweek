@@ -15,7 +15,7 @@ CREATE TABLE users (
     username TEXT NOT NULL UNIQUE,
     hashed_password TEXT NOT NULL UNIQUE,
     registered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_admin INTEGER DEFAULT 0 NOT NULL, -- boolean 0/1
+    is_admin INTEGER DEFAULT 0 NOT NULL -- boolean 0/1
 );
 
 INSERT INTO users (username, hashed_password, is_admin) VALUES ("admin", "$2a$14$0DRESadVeTLIdqc2U7IqzeCQncEzZukLUtLj3WjD.LHGaiWwefcGa", 1);
