@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -38,7 +39,13 @@ func (h *BaseHandler) dashboardUsersHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	layouts.DashboardUsers(users).Render(r.Context(), w)
+	rCodes, err := h.recoveryCodeRepo.GetAll()
+	if err != nil {
+		http.Error(w, "Ошибка при попытке загрузить коды восстановления", http.StatusInternalServerError)
+		return
+	}
+
+	layouts.DashboardUsers(users, rCodes).Render(r.Context(), w)
 }
 
 func (h *BaseHandler) dashboardInvitesHandler(w http.ResponseWriter, r *http.Request) {
@@ -225,4 +232,67 @@ func (h *BaseHandler) publishingFormHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	components.PublishingSuccessful(a.Slug).Render(r.Context(), w)
+}
+
+func (h *BaseHandler) createRecoveryCodeForm(w http.ResponseWriter, r *http.Request) {
+	_, user := isAuthorised(r, h)
+	if !user.IsAdmin {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		result := components.FormWarning("Ошибка в обработке формы")
+		components.CreateRecoveryCodeForm(result).Render(r.Context(), w)
+		return
+	}
+
+	userIDstr := r.PostFormValue("userID")
+	if userIDstr == "" {
+		result := components.FormWarning("Пустое значение ID")
+		components.CreateRecoveryCodeForm(result).Render(r.Context(), w)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDstr)
+	if err != nil || userID < 0 {
+		result := components.FormWarning("Должно целым числом больше 0")
+		components.CreateRecoveryCodeForm(result).Render(r.Context(), w)
+		return
+	}
+
+	rCode, err := h.recoveryCodeRepo.Create(userID)
+	if err != nil || userID < 0 {
+		result := components.FormWarning("Ошибка сервера при создании кода")
+		log.Print(err)
+		components.CreateRecoveryCodeForm(result).Render(r.Context(), w)
+		return
+	}
+
+	result := components.FormOK(fmt.Sprintf("Создан код для восстановления аккаунта: %s", rCode.RecoveryCode))
+	components.CreateRecoveryCodeForm(result).Render(r.Context(), w)
+}
+
+func (h *BaseHandler) deleteRecoveryCode(w http.ResponseWriter, r *http.Request) {
+	_, user := isAuthorised(r, h)
+	if !user.IsAdmin {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+
+	rCodeID, err := strconv.Atoi(r.PathValue("rCodeID"))
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	err = h.recoveryCodeRepo.Delete(rCodeID)
+	if err != nil {
+		log.Printf("Ошибка при удалении кода восстановления\nrCodeID: %d\nАдминистратор: %s\nОшибка:", rCodeID, user.Username, err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

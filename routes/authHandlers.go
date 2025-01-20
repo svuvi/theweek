@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/svuvi/theweek/components"
+	"github.com/svuvi/theweek/layouts"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,7 +19,11 @@ func (h *BaseHandler) loginFormHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
@@ -101,7 +106,11 @@ func (h *BaseHandler) registrationFormHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	r.ParseForm()
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 	passwordRepeat := r.PostFormValue("passwordRepeat")
@@ -211,7 +220,11 @@ func (h *BaseHandler) changePasswordForm(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
 	passwordCurrent := r.PostFormValue("passwordCurrent")
 	passwordNew := r.PostFormValue("passwordNew")
 	passwordNewRepeat := r.PostFormValue("passwordNewRepeat")
@@ -260,4 +273,129 @@ func (h *BaseHandler) changePasswordForm(w http.ResponseWriter, r *http.Request)
 
 	components.PasswordChanged().Render(r.Context(), w)
 	log.Printf("Изменен пароль пользователя %s", user.Username)
+}
+
+func (h *BaseHandler) restorePasswordPage(w http.ResponseWriter, r *http.Request) {
+	isAuthorised(r, h) // Здесь только для отметки последнего использования сессии
+
+	q := r.URL.Query()
+	code := q.Get("code")
+
+	if code == "" {
+		layouts.RestorePasswordRequestPage(false).Render(r.Context(), w)
+		return
+	}
+
+	if err := uuid.Validate(code); err != nil {
+		layouts.RestorePasswordRequestPage(true).Render(r.Context(), w)
+		return
+	}
+
+	rCode, err := h.recoveryCodeRepo.Get(code)
+	if err != nil || !rCode.IsActive() {
+		layouts.RestorePasswordRequestPage(true).Render(r.Context(), w)
+		return
+	}
+
+	layouts.RestorePasswordPage(code).Render(r.Context(), w)
+}
+
+func (h *BaseHandler) restorePasswordForm(w http.ResponseWriter, r *http.Request) {
+	authorised, _ := isAuthorised(r, h) // отметка
+
+	q := r.URL.Query()
+	code := q.Get("code")
+
+	if err := uuid.Validate(code); err != nil {
+		log.Print("invalid uuid")
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	rCode, err := h.recoveryCodeRepo.Get(code)
+	if err != nil || !rCode.IsActive() {
+		log.Print("err when retreiving the code from db: \n", err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	userame := r.PostFormValue("username")
+	password := r.PostFormValue("password")
+	passwordRepeat := r.PostFormValue("passwordRepeat")
+
+	if password != passwordRepeat {
+		result := components.FormWarning("Пароли не совпадают")
+		components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+		return
+	}
+
+	if !acceptablePassword(password) {
+		result := components.FormWarning("Неприемлимый пароль. Пароль не должен быть короче 6 символов или длиннее 72")
+		components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+		return
+	}
+
+	usrFromForm, err := h.userRepo.GetByUsername(userame)
+	if err == sql.ErrNoRows {
+		result := components.FormWarning("Неверный логин")
+		components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+		log.Print(err)
+		return
+	} else if err != nil {
+		result := components.FormWarning("Внутренняя ошибка сервера. Сообщи администратору и попробуй позже")
+		components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+		log.Print(err)
+		return
+	}
+
+	if usrFromForm.ID != rCode.UserID {
+		result := components.FormWarning("Неверное имя пользователя или код")
+		components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		result := components.FormWarning("Внутренняя ошибка сервера. Сообщи администратору и попробуй позже")
+		components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+		return
+	}
+
+	err = h.userRepo.ChangePassword(rCode.UserID, string(hash))
+	if err != nil {
+		result := components.FormWarning("Внутренняя ошибка сервера. Сообщи администратору и попробуй позже")
+		components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+		return
+	}
+
+	err = h.recoveryCodeRepo.SetUsed(rCode.RecoveryCode)
+	if err != nil {
+		log.Printf("Ошибка при попытке отметить код восстановления для пользователя как использованный.\nКод:%s\nID пользователя:%d", rCode.RecoveryCode, rCode.UserID)
+	}
+
+	if !authorised {
+		sessionKey := uuid.NewString()
+		_, err = h.sessionRepo.Create(rCode.ID, sessionKey)
+		if err != nil {
+			result := components.FormWarning("Внутренняя ошибка сервера. Сообщи администратору и попробуй позже")
+			components.PasswordRestoreForm(code, result).Render(r.Context(), w)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_key",
+			Value:    sessionKey,
+			Path:     "",
+			HttpOnly: true,
+			Secure:   true,
+		})
+	}
+
+	components.PasswordRestored().Render(r.Context(), w)
 }

@@ -16,20 +16,22 @@ import (
 )
 
 type BaseHandler struct {
-	articleRepo models.ArticleRepository
-	userRepo    models.UserRepository
-	sessionRepo models.SessionRepository
-	inviteRepo  models.InviteRepository
-	imageRepo   models.ImageRepository
+	articleRepo      models.ArticleRepository
+	userRepo         models.UserRepository
+	sessionRepo      models.SessionRepository
+	inviteRepo       models.InviteRepository
+	imageRepo        models.ImageRepository
+	recoveryCodeRepo models.RecoveryCodeRepository
 }
 
 func NewBaseHandler(db *sql.DB) *BaseHandler {
 	return &BaseHandler{
-		articleRepo: repositories.NewArticleRepo(db),
-		userRepo:    repositories.NewUserRepo(db),
-		sessionRepo: repositories.NewSessionRepo(db),
-		inviteRepo:  repositories.NewInviteRepo(db),
-		imageRepo:   repositories.NewImageRepo(db),
+		articleRepo:      repositories.NewArticleRepo(db),
+		userRepo:         repositories.NewUserRepo(db),
+		sessionRepo:      repositories.NewSessionRepo(db),
+		inviteRepo:       repositories.NewInviteRepo(db),
+		imageRepo:        repositories.NewImageRepo(db),
+		recoveryCodeRepo: repositories.NewRecoveryCodeRepo(db),
 	}
 }
 
@@ -53,13 +55,16 @@ func (h *BaseHandler) NewRouter() http.Handler {
 	mux.HandleFunc("GET /account/", h.accountPage)
 	mux.HandleFunc("GET /account/change-password", h.changePasswordPage)
 	mux.HandleFunc("POST /account/change-password", h.changePasswordForm)
-	//mux.HandleFunc("GET /account/restore-password", h.restorePasswordPage)
+	mux.HandleFunc("GET /account/restore-password", h.restorePasswordPage)
+	mux.HandleFunc("POST /account/restore-password", h.restorePasswordForm)
 
 	mux.HandleFunc("GET /dashboard/", h.dasboardPageHandler)
 	mux.HandleFunc("GET /dashboard/users/", h.dashboardUsersHandler)
 	mux.HandleFunc("GET /dashboard/invites/", h.dashboardInvitesHandler)
 	mux.HandleFunc("POST /dashboard/invites/create", h.createInvite)
 	mux.HandleFunc("DELETE /dashboard/invites/delete/{code}", h.deleteInvite)
+	mux.HandleFunc("POST /dashboard/reocvery-codes/create", h.createRecoveryCodeForm)
+	mux.HandleFunc("DELETE /dashboard/reocvery-codes/delete/{rCodeID}", h.deleteRecoveryCode)
 	mux.HandleFunc("GET /dashboard/publishing/", h.dashboardPublishing)
 	mux.HandleFunc("GET /dashboard/publishing/{articleID}", h.dashboardPublishing)
 	mux.HandleFunc("POST /dashboard/publishing/", h.publishingFormHandler)
@@ -112,7 +117,6 @@ func (h *BaseHandler) articleHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *BaseHandler) loginPageHandler(w http.ResponseWriter, r *http.Request) {
 	authorized, user := isAuthorised(r, h)
-	log.Print(user)
 	layouts.LoginPage(authorized, user).Render(r.Context(), w)
 }
 

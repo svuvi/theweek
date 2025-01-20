@@ -1,11 +1,10 @@
 package layouts
 
 import (
-	"slices"
-
-	"github.com/svuvi/theweek/models"
-	"github.com/svuvi/theweek/components"
 	"fmt"
+	"github.com/svuvi/theweek/components"
+	"github.com/svuvi/theweek/models"
+	"slices"
 )
 
 templ Base(tabTitle string, metaTags templ.Component) {
@@ -15,19 +14,19 @@ templ Base(tabTitle string, metaTags templ.Component) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>{ tabTitle }</title>
-			<link rel="stylesheet" href="/static/style.css">
-			<link rel="preconnect" href="https://fonts.googleapis.com">
-			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-			<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+			<link rel="stylesheet" href="/static/style.css"/>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
 			<script src="/static/htmx.min.js"></script>
 			<meta name="htmx-config" content='{"responseHandling": [{"code":".*", "swap": true}]}'/>
 			/* Иконки: */
-			<link rel="icon" type="image/png" href="/static/favicon-96x96.png" sizes="96x96" />
-			<link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
-			<link rel="shortcut icon" href="/static/favicon.ico" />
-			<link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png" />
-			<meta name="apple-mobile-web-app-title" content="The Week" />
-			<link rel="manifest" href="/static/site.webmanifest" />
+			<link rel="icon" type="image/png" href="/static/favicon-96x96.png" sizes="96x96"/>
+			<link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
+			<link rel="shortcut icon" href="/static/favicon.ico"/>
+			<link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"/>
+			<meta name="apple-mobile-web-app-title" content="The Week"/>
+			<link rel="manifest" href="/static/site.webmanifest"/>
 			@metaTags
 		</head>
 		<body>
@@ -113,10 +112,11 @@ templ AccountPage(user *models.User) {
 		<div class="account-menu inter-regular">
 			<p>👤 { user.Username }</p>
 			<p>Дата регистрации: { user.RegisteredAt.String() }</p>
-			<p>Пароль:
-				<br>
+			<p>
+				Пароль:
+				<br/>
 				<a href="/account/change-password">Сменить пароль</a>
-				<br>
+				<br/>
 				<a href="/account/restore-password">Восстановить пароль</a>
 			</p>
 		</div>
@@ -126,5 +126,27 @@ templ AccountPage(user *models.User) {
 templ ChangePasswordPage(user *models.User) {
 	@Base("Смена пароля - The Week", templ.NopComponent) {
 		@components.PasswordChangeForm(templ.NopComponent, templ.NopComponent, templ.NopComponent, "", "", "")
+	}
+}
+
+templ RestorePasswordRequestPage(invalidCode bool) {
+	@Base("Что делать, если забыл пароль - The Week", templ.NopComponent) {
+		<div>
+			if invalidCode {
+				<p>У тебя что-то не так с кодом. Проверь, скопировал ли ты его целиком</p>
+			}
+			<p>Что делать, если забыл пароль:</p>
+			<ol>
+				<li>Написать в телеграме в лс @svuvich или отметить в беседе Урбанойда</li>
+				<li>Получить ссылку для восстановления пароля</li>
+				<li>Перейти по ссылке и ввести новый пароль</li>
+			</ol>
+		</div>
+	}
+}
+
+templ RestorePasswordPage(code string) {
+	@Base("Восстановление пароля - The Week", templ.NopComponent) {
+		@components.PasswordRestoreForm(code, templ.NopComponent)
 	}
 }

@@ -18,6 +18,8 @@ CREATE TABLE users (
     is_admin INTEGER DEFAULT 0 NOT NULL, -- boolean 0/1
 );
 
+INSERT INTO users (username, hashed_password, is_admin) VALUES ("admin", "$2a$14$0DRESadVeTLIdqc2U7IqzeCQncEzZukLUtLj3WjD.LHGaiWwefcGa", 1);
+
 CREATE TABLE sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
@@ -45,4 +47,13 @@ CREATE TABLE images (
     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     content BLOB,
     FOREIGN KEY (uploaded_by) REFERENCES users (id)
+);
+
+CREATE TABLE recovery_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL, -- Пользователь, чей аккаунт
+    recovery_code TEXT NOT NULL, -- UUID строка
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
