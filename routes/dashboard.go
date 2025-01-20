@@ -289,7 +289,7 @@ func (h *BaseHandler) deleteRecoveryCode(w http.ResponseWriter, r *http.Request)
 
 	err = h.recoveryCodeRepo.Delete(rCodeID)
 	if err != nil {
-		log.Printf("Ошибка при удалении кода восстановления\nrCodeID: %d\nАдминистратор: %s\nОшибка:", rCodeID, user.Username, err)
+		log.Printf("Ошибка при удалении кода восстановления\nrCodeID: %d\nАдминистратор: %s\nОшибка: %v", rCodeID, user.Username, err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
