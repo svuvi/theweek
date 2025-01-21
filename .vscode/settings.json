@@ -1,11 +1,17 @@
 {
-    "sqltools.useNodeRuntime": true,
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "driver": "SQLite",
-            "database": "database.db",
-            "name": "sqliteDB"
-        }
-    ]
+  "sqltools.useNodeRuntime": true,
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "database": "database.db",
+      "name": "sqliteDB"
+    },
+    {
+      "previewLimit": 50,
+      "driver": "SQLite",
+      "name": "ass",
+      "database": "database.db"
+    }
+  ]
 }
