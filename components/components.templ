@@ -11,7 +11,10 @@ templ MetaTagsArticle(a *models.Article) {
 	<meta property="og:type" content="article"/>
 	<meta property="og:title" content={ a.Title }/>
 	<meta property="og:url" content={ fmt.Sprint("https://theweek.svuvich.nl/", a.Slug) }/>
-	// <meta property="og:image" content="">
+	if a.CoverImageID != 0 {
+		<meta property="og:image" content={ fmt.Sprint("/images/", a.CoverImageID) }/>
+	}
+	// 
 	<meta property="og:description" content={ a.Description }/>
 	// <meta property="article:author" content="">
 	// <meta property="article:published_time" content="">
@@ -26,8 +29,8 @@ templ MetaTagsSite() {
     Предложить новость: @the_week_urb_bot"
 	/>
 	<meta property="og:url" content="https://theweek.svuvich.nl/"/>
-	<meta property="og:logo" content="https://theweek.svuvich.nl/static/logo.png"/>
-	// <meta property="og:image" content="https://theweek.svuvich.nl/static/logo.png"/>
+	<meta property="og:logo" content="https://theweek.svuvich.nl/static/logo.jpg"/>
+	<meta property="og:image" content="https://theweek.svuvich.nl/static/logo.jpg"/>
 	<meta property="og:type" content="website"/>
 	<meta property="og:locale" content="ru-RU"/>
 }
