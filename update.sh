@@ -4,11 +4,16 @@ SCRIPT_DIR=$(dirname "$0")
 
 # 1. Загружаем обновление
 echo "Загружаю обновление с github.com/svuvi/theweek.git..."
-git -C "$SCRIPT_DIR" pull origin main
+GIT_PULL_OUTPUT=$(git -C "$SCRIPT_DIR" pull origin main 2>&1)
 
 if [ $? -ne 0 ]; then
     echo "Git pull не удался. Отмена."
     exit 1
+fi
+
+if echo "$GIT_PULL_OUTPUT" | grep -q "Already up to date"; then
+    echo "Локальная копия уже обновлена. Отмена."
+    exit 0
 fi
 
 # 2. Генерируем шаблоны
