@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -16,8 +18,10 @@ func main() {
 	h := routes.NewBaseHandler(db)
 	router := middleware.NewLogger(h.NewRouter())
 
+	port := flag.Int("port", 8080, "port number")
+
 	server := http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprint(":", *port),
 		Handler: router,
 	}
 
